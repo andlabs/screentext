@@ -1,4 +1,5 @@
 // 10 june 2014
+package main
 
 import (
 	"sync"
@@ -21,7 +22,7 @@ const (
 // r, g, and b are in the range [0,255].
 func NewRGBPen(r uint, g uint, b uint) *Pen {
 	return &Pen{
-		sysPen:	makeSysPenRGB(r, g, b),
+		sysPen:	mkSysPenRGB(r, g, b),
 	}
 }
 
@@ -31,6 +32,6 @@ func (p *Pen) Line(linetype Line, thickness uint) *Pen {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	p.sysPen.setLineType(linetype, thcikness)
+	p.sysPen.setLineType(linetype, thickness)
 	return p
 }

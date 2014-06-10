@@ -12,22 +12,22 @@ type areaHandler struct {
 func (a *areaHandler) Paint(r image.Rectangle) *image.RGBA {
 	return a.img.SubImage(r).(*image.RGBA)
 }
-func (a *areaHandler) Key(ke KeyEvent) bool {
+func (a *areaHandler) Key(ke ui.KeyEvent) bool {
 	return false
 }
-func (a *areaHandler) Mouse(me MouseEvent) bool {
+func (a *areaHandler) Mouse(me ui.MouseEvent) bool {
 	return false
 }
 
 func myMain() {
-	i := new Image(320, 240)
+	i := NewImage(320, 240)
 	defer i.Close()
 	i.Pen(NewRGBPen(255, 0, 0).Line(Solid, 3))
 	i.Line(4, 4, 316, 236)
 	w := ui.NewWindow("Test", 320, 240)
 	w.Open(ui.NewArea(320, 240, &areaHandler{
 		img:		i.Image(),
-	})
+	}))
 	<-w.Closing
 }
 

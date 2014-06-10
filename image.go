@@ -9,15 +9,15 @@ import (
 // Image represents an in-memory image.
 // It satisfies Go's draw.Image.
 type Image struct {
-	lock		sync.Mutex
-	sysData	*sysData
+	lock			sync.Mutex
+	sysImage		*sysImage
 }
 
 // NewImage creates a new Image.
 // It will initially be fully transparent.
 func NewImage(width int, height int) *Image {
 	return &Image{
-		sysData:		mkSysDataImage(width, height),
+		sysImage:		mkSysImage(width, height),
 	}
 }
 
@@ -26,8 +26,8 @@ func (i *Image) Close() {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	i.sysData.close()
-	i.sysData = nil
+	i.sysImage.close()
+	i.sysImage = nil
 }
 
 // Pen selects a pen for drawing lines and frames.
@@ -37,7 +37,7 @@ func (i *Image) Pen(p *Pen) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	i.sysData.selectPen(p)
+	i.sysImage.selectPen(p)
 }
 
 // Line draws a line from (x0,y0) to (x1,y1) with the current Pen.
@@ -45,13 +45,13 @@ func (i *Image) Line(x0 int, y0 int, x1 int, y1 int) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	i.sysData.line(x0, y0, x1, y1)
+	i.sysImage.line(x0, y0, x1, y1)
 }
 
 // Image produces a copy of i as a Go image.RGBA.
-func (i *Image) Image() *image.NRGBA {
+func (i *Image) Image() *image.RGBA {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	return i.sysData.toImage()
+	return i.sysImage.toImage()
 }
