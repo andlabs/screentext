@@ -31,7 +31,6 @@ Font <CTFontDescriptorRef>
 	Variation			Variation <kCTFontVariationAttribute>
 	TransformMatrix	CFDataRef<CGAffineTransform> <kCTFontMatrixAttribute>
 	CharSet			CFCharacterSetRef <kCTFontCharacterSetAttribute>
-	Languages		[]string <kCTFontLanguagesAttribute> (available in pango too apparently???)
 	MacEncodings		uint <kCTFontMacintoshEncodingsAttribute> :: bitfield; legacy purposes
 	Features			[]Features <kCTFontFeaturesAttribute>
 	FeatureSettings		[](something complex) <kCTFontFeatureSettingsAttribute>
