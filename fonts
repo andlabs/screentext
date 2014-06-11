@@ -12,7 +12,7 @@ Face
 	Description	Description
 	IsSynthesized	bool
 Description
-	Family		string
+	Family		string :: should be identical to Family above...
 	Style			(Normal, Oblique, Italic)
 	Variant		(Normal, SmallCaps)
 	Weight		int[100..900 or 1000]; has some special values
@@ -23,7 +23,6 @@ Description
 
 MAC (CORE TEXT) - https://developer.apple.com/library/mac/documentation/Carbon/reference/CTFontDescriptorRef/Reference/reference.html#//apple_ref/doc/uid/TP40005107-CH4-SW16
 Font <CTFontDescriptorRef>
-	URL				URL <kCTFontURLAttribute : 10.6>
 	PostScriptName	string <kCTFontNameAttribute>
 	DisplayName		string <kCTFontDisplayNameAttribute>
 	Family			string <kCTFontFamilyNameAttribute>
@@ -40,10 +39,6 @@ Font <CTFontDescriptorRef>
 	FeatureSettings		[](something complex) <kCTFontFeatureSettingsAttribute>
 	FixedAdvance		float <kCTFontFixedAdvanceAttribute>
 	Orientation		(Default, Horizontal, Vertical) <kCTFontOrientationAttribute>
-	Format			(Unrecognized, OpenTypePostScript, OpenTypeTrueType, TrueType, PostScript, Bitmap) <kCTFontFormatAttribute : 10.6>
-	RegistrationScope	(unregistered, CTFontManagerScope) <kCTFontRegistrationScopeAttribute : 10.6>
-	Priority			(unregistered, System, Network, Computer, User, Dynamic, Process) <kCTFontPriorityAttribute : 10.6>
-	Enabled			bool(NULL=false) <kCTFontEnabledAttribute : 10.6>
 Traits
 	Symbolic			uint <kCTFontSymbolicTrait> :: bit mask; see https://developer.apple.com/library/mac/documentation/Carbon/reference/CTFontDescriptorRef/Reference/reference.html#//apple_ref/doc/uid/TP40005107-CH4-SW7
 	Weight			float <kCTFontWeightTrait> :: [-1.0..1.0]; only special is 0.0 for normal
