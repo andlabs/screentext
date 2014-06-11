@@ -30,10 +30,8 @@ Font <CTFontDescriptorRef>
 	Traits			Traits <kCTFontTraitsAttribute>
 	Variation			Variation <kCTFontVariationAttribute>
 	TransformMatrix	CFDataRef<CGAffineTransform> <kCTFontMatrixAttribute>
-	CascadeList		[]Font <kCTFontCascadeListAttribute>
 	CharSet			CFCharacterSetRef <kCTFontCharacterSetAttribute>
 	Languages		[]string <kCTFontLanguagesAttribute> (available in pango too apparently???)
-	BaselineAdjust		float <kCTFontBaselineAdjustAttribute> :: used by CascadeList for keeping baselines even
 	MacEncodings		uint <kCTFontMacintoshEncodingsAttribute> :: bitfield; legacy purposes
 	Features			[]Features <kCTFontFeaturesAttribute>
 	FeatureSettings		[](something complex) <kCTFontFeatureSettingsAttribute>
