@@ -7,7 +7,7 @@ Family
 	IsMonospace	bool
 	Faces		[]Face
 Face
-	Name		string
+	StyleName	string :: "Bold", for instance
 	Sizes			[]int :: "Pango units", pre-sorted, bitmap fonts only
 	Description	Description
 	IsSynthesized	bool
