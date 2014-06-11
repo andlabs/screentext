@@ -30,8 +30,6 @@ Font <CTFontDescriptorRef>
 	Traits			Traits <kCTFontTraitsAttribute>
 	Variation			Variation <kCTFontVariationAttribute>
 	TransformMatrix	CFDataRef<CGAffineTransform> <kCTFontMatrixAttribute>
-	CharSet			CFCharacterSetRef <kCTFontCharacterSetAttribute>
-	MacEncodings		uint <kCTFontMacintoshEncodingsAttribute> :: bitfield; legacy purposes
 	Features			[]Features <kCTFontFeaturesAttribute>
 	FeatureSettings		[](something complex) <kCTFontFeatureSettingsAttribute>
 	FixedAdvance		float <kCTFontFixedAdvanceAttribute>
@@ -55,7 +53,6 @@ LOGFONT
 	Italic				bool
 	Underline			bool
 	StrikeOut			bool
-	CharSet			byte
 	OutPrecision		(some enumeration)
 	CllipPrecision		(some enumeration)
 	Quality			(some enumeration)
