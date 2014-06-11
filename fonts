@@ -25,7 +25,7 @@ Description
 	SetFields		uint :: specifies which of the above seven properties are set
 	can be converted to string
 
-MAC (CORE TEXT)
+MAC (CORE TEXT) - https://developer.apple.com/library/mac/documentation/Carbon/reference/CTFontDescriptorRef/Reference/reference.html#//apple_ref/doc/uid/TP40005107-CH4-SW16
 Font <CTFontDescriptorRef>
 	URL				URL <kCTFontURLAttribute : 10.6>
 	PostScriptName	string <kCTFontNameAttribute>
@@ -42,55 +42,65 @@ Font <CTFontDescriptorRef>
 	BaselineAdjust		float <kCTFontBaselineAdjustAttribute> :: used by CascadeList for keeping baselines even
 	MacEncodings		uint <kCTFontMacintoshEncodingsAttribute> :: bitfield; legacy purposes
 	Features			[]Features <kCTFontFeaturesAttribute>
+	FeatureSettings		[](something complex) <kCTFontFeatureSettingsAttribute>
+	FixedAdvance		float <kCTFontFixedAdvanceAttribute>
+	Orientation		(Default, Horizontal, Vertical) <kCTFontOrientationAttribute>
+	Format			(Unrecognized, OpenTypePostScript, OpenTypeTrueType, TrueType, PostScript, Bitmap) <kCTFontFormatAttribute : 10.6>
+	RegistrationScope	(unregistered, CTFontManagerScope) <kCTFontRegistrationScopeAttribute : 10.6>
+	Priority			(unregistered, System, Network, Computer, User, Dynamic, Process) <kCTFontPriorityAttribute : 10.6>
+	Enabled			bool(NULL=false) <kCTFontEnabledAttribute : 10.6>
+Traits
+	Symbolic			uint <kCTFontSymbolicTrait> :: bit mask; see https://developer.apple.com/library/mac/documentation/Carbon/reference/CTFontDescriptorRef/Reference/reference.html#//apple_ref/doc/uid/TP40005107-CH4-SW7
+	Weight			float <kCTFontWeightTrait> :: [-1.0..1.0]; only special is 0.0 for normal
+	Width			float <kCTFontWidthTrait> :: [-1.0..1.0]; only special is 0.0 for normal
+	Slant				float <kCTFontSlantTrait> :: [-1.0..1.0]; only specials are 0.0 for unslanted and 1.0 for 30 degrees to the right (and hence -1.0 is 30 degrees to the left)
+Variation
+	TODO
+Features
+	TODO
 
-==== I start getting lost here ===
-kCTFontFeatureSettingsAttribute
-
-    Key to specify or obtain the font features settings for a font reference. The value associated with this key is a CFArrayRef object containing font feature-setting dictionaries. A feature-setting dictionary contains a tuple of a kCTFontFeatureTypeIdentifierKey key-value pair and a kCTFontFeatureSelectorIdentifierKey key-value pair. Each setting dictionary indicates which setting should be turned on. In the case of duplicate or conflicting setting, the last setting in the list takes precedence. It is the caller's responsibility to handle exclusive and nonexclusive settings as necessary.
-
-    Available in OS X v10.5 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontFixedAdvanceAttribute
-
-    Key to specify a fixed advance to be used for a font reference. If present and specified, this attribute is used to specify a constant advance to override any font values. The value associated with this key is a float represented as a CFNumberRef object.
-
-    Available in OS X v10.5 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontOrientationAttribute
-
-    Key to specify a particular orientation for the glyphs of the font. The value associated with this key is an integer represented as a CFNumberRef object containing one of the constants in “Font Orientation Constants.” If you want to receive vertical metrics from a font for vertical rendering, specify kCTFontVerticalOrientation. If unspecified, the font uses its native orientation.
-
-    Available in OS X v10.5 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontFormatAttribute
-
-    Key to specify or obtain the recognized format of the font. The value associated with this key is an integer represented as a CFNumberRef object containing one of the constants in “Font Format Constants.”
-
-    Available in OS X v10.6 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontRegistrationScopeAttribute
-
-    Key to specify or obtain the font descriptor's registration scope. The value associated with this key is an integer represented as a CFNumberRef object containing one of the CTFontManagerScope enumerated values. A value of NULL can be returned for font descriptors that are not registered.
-
-    Available in OS X v10.6 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontPriorityAttribute
-
-    Key to specify or obtain the font priority used by font descriptors when resolving duplicates and sorting match results. The value associated with this key is an integer represented as a CFNumberRef object containing one of the values enumerated in “Font Priority Constants.” The higher the value, the higher the priority of the font. Only registered fonts have a priority. Unregistered font descriptors return NULL.
-
-    Available in OS X v10.6 and later.
-
-    Declared in CTFontDescriptor.h.
-kCTFontEnabledAttribute
-
-    Key to obtain the font enabled state. The returned value is an integer represented as a CFNumberRef object representing a Boolean value. Unregistered font descriptors return NULL, which is equivalent to false.
-
-    Available in OS X v10.6 and later.
-
-    Declared in CTFontDescriptor.h.
-
+WINDOWS
+LOGFONT
+	Height			int32 :: complex format
+	Width			int32 :: logical units or zero
+	Escapement		int32 :: angle relative to horizontal in tenths of degrees
+	Orientation		int32 :: same as escapement but per-character
+	Weight			int32 :: [0..100]; special values exist
+	Italic				bool
+	Underline			bool
+	StrikeOut			bool
+	CharSet			byte
+	OutPrecision		(some enumeration)
+	CllipPrecision		(some enumeration)
+	Quality			(some enumeration)
+	PitchAndFamily	byte :: bitfield
+	FaceName		string
+TEXTMETRIC
+	Height			int32
+	Ascent			int32
+	Descent			int32
+	InternalLeading	int32
+	ExternalLeading	int32
+	AvgCharWidth		int32
+	MaxCharWidth		int32
+	Weight			int32
+	Overhang			int32
+	DigitizedAspectX	int32
+	DigitizedAspectY	int32
+	FirstChar			rune
+	LastChar			rune
+	DefaultChar		rune
+	BreakChar		rune
+	Italic				bool
+	Underline			bool
+	StrikeOut			bool
+	PitchAndFamily	byte
+	CharSet			byte
+TEXTMETRIC EXTENSIONS IF TRUETYPE
+	Flags			uint32 :: bitfield
+	SizeOfEmSquare	uint32
+	CellHeight		uint32
+	AvgWidth			uint32
+FONTSIGNATURE IF TRUETYPE
+	USBCoverage		[128 bits]
+	CPBCoverage		[64 bits]
