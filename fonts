@@ -40,7 +40,7 @@ Font <CTFontDescriptorRef>
 	FixedAdvance		float <kCTFontFixedAdvanceAttribute>
 	Orientation		(Default, Horizontal, Vertical) <kCTFontOrientationAttribute>
 Traits
-	Symbolic			uint <kCTFontSymbolicTrait> :: bit mask; see https://developer.apple.com/library/mac/documentation/Carbon/reference/CTFontDescriptorRef/Reference/reference.html#//apple_ref/doc/uid/TP40005107-CH4-SW7
+	Symbolic			uint <kCTFontSymbolicTrait> :: bit mask: (Italic, Bold, Expanded, Condensed, Monospace, Vertical, UIOptimized, family classes like Windows's PitchAndFamily)
 	Weight			float <kCTFontWeightTrait> :: [-1.0..1.0]; only special is 0.0 for normal
 	Width			float <kCTFontWidthTrait> :: [-1.0..1.0]; only special is 0.0 for normal
 	Slant				float <kCTFontSlantTrait> :: [-1.0..1.0]; only specials are 0.0 for unslanted and 1.0 for 30 degrees to the right (and hence -1.0 is 30 degrees to the left)
