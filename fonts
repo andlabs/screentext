@@ -74,33 +74,6 @@ LOGFONT
 	CllipPrecision		(some enumeration)
 	Quality			(some enumeration)
 	PitchAndFamily	byte :: bitfield
+						pitch: (Default, Fixed, Variable)
+						family: (Decorative, DontCare, Modern, Roman, Script, Swiss)
 	FaceName		string
-TEXTMETRIC
-	Height			int32
-	Ascent			int32
-	Descent			int32
-	InternalLeading	int32
-	ExternalLeading	int32
-	AvgCharWidth		int32
-	MaxCharWidth		int32
-	Weight			int32
-	Overhang			int32
-	DigitizedAspectX	int32
-	DigitizedAspectY	int32
-	FirstChar			rune
-	LastChar			rune
-	DefaultChar		rune
-	BreakChar		rune
-	Italic				bool
-	Underline			bool
-	StrikeOut			bool
-	PitchAndFamily	byte
-	CharSet			byte
-TEXTMETRIC EXTENSIONS IF TRUETYPE
-	Flags			uint32 :: bitfield
-	SizeOfEmSquare	uint32
-	CellHeight		uint32
-	AvgWidth			uint32
-FONTSIGNATURE IF TRUETYPE
-	USBCoverage		[128 bits]
-	CPBCoverage		[64 bits]
