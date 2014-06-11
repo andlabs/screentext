@@ -17,10 +17,6 @@ Description
 	Variant		(Normal, SmallCaps)
 	Weight		int[100..900 or 1000]; has some special values
 	Stretch		(UltraCondensed, ExtraCondensed, Condensed, SemiCondensed, Normal, SemiExpanded, Expanded, ExtraExpanded, UltraExpanded)
-	Size			int :: see below
-	IsAbsoluteSize	bool ::
-					true -> Size is Pango units; PANGO_SCALE Pango units == 1 device unit
-					false -> Size is points * PANGO_SCALE
 	Gravity		(South, East, North, West, Auto)
 	SetFields		uint :: specifies which of the above seven properties are set
 	can be converted to string
@@ -34,7 +30,6 @@ Font <CTFontDescriptorRef>
 	StyleName		string <kCTFontStyleNameAttribute> :: designer-provided
 	Traits			Traits <kCTFontTraitsAttribute>
 	Variation			Variation <kCTFontVariationAttribute>
-	Size				"CFNumberRef" (TODO int or float?) <kCTFontSizeAttribute> :: point size
 	TransformMatrix	CFDataRef<CGAffineTransform> <kCTFontMatrixAttribute>
 	CascadeList		[]Font <kCTFontCascadeListAttribute>
 	CharSet			CFCharacterSetRef <kCTFontCharacterSetAttribute>
@@ -61,7 +56,6 @@ Features
 
 WINDOWS
 LOGFONT
-	Height			int32 :: complex format
 	Width			int32 :: logical units or zero
 	Escapement		int32 :: angle relative to horizontal in tenths of degrees
 	Orientation		int32 :: same as escapement but per-character
