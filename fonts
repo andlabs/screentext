@@ -1,0 +1,96 @@
+Windows, Mac - can enumerate individual fonts
+pango - have to enumerate whole families, then the fonts inside
+
+PANGO :: https://developer.gnome.org/pango/1.30/pango-Fonts.html
+Family
+	Name		string
+	IsMonospace	bool
+	Faces		[]Face
+Face
+	Name		string
+	Sizes			[]int :: "Pango units", pre-sorted, bitmap fonts only
+	Description	Description
+	IsSynthesized	bool
+Description
+	Family		string
+	Style			(Normal, Oblique, Italic)
+	Variant		(Normal, SmallCaps)
+	Weight		int[100..900 or 1000]; has some special values
+	Stretch		(UltraCondensed, ExtraCondensed, Condensed, SemiCondensed, Normal, SemiExpanded, Expanded, ExtraExpanded, UltraExpanded)
+	Size			int :: see below
+	IsAbsoluteSize	bool ::
+					true -> Size is Pango units; PANGO_SCALE Pango units == 1 device unit
+					false -> Size is points * PANGO_SCALE
+	Gravity		(South, East, North, West, Auto)
+	SetFields		uint :: specifies which of the above seven properties are set
+	can be converted to string
+
+MAC (CORE TEXT)
+Font <CTFontDescriptorRef>
+	URL				URL <kCTFontURLAttribute : 10.6>
+	PostScriptName	string <kCTFontNameAttribute>
+	DisplayName		string <kCTFontDisplayNameAttribute>
+	Family			string <kCTFontFamilyNameAttribute>
+	StyleName		string <kCTFontStyleNameAttribute> :: designer-provided
+	Traits			Traits <kCTFontTraitsAttribute>
+	Variation			Variation <kCTFontVariationAttribute>
+	Size				"CFNumberRef" (TODO int or float?) <kCTFontSizeAttribute> :: point size
+	TransformMatrix	CFDataRef<CGAffineTransform> <kCTFontMatrixAttribute>
+	CascadeList		[]Font <kCTFontCascadeListAttribute>
+	CharSet			CFCharacterSetRef <kCTFontCharacterSetAttribute>
+	Languages		[]string <kCTFontLanguagesAttribute> (available in pango too apparently???)
+	BaselineAdjust		float <kCTFontBaselineAdjustAttribute> :: used by CascadeList for keeping baselines even
+	MacEncodings		uint <kCTFontMacintoshEncodingsAttribute> :: bitfield; legacy purposes
+	Features			[]Features <kCTFontFeaturesAttribute>
+
+==== I start getting lost here ===
+kCTFontFeatureSettingsAttribute
+
+    Key to specify or obtain the font features settings for a font reference. The value associated with this key is a CFArrayRef object containing font feature-setting dictionaries. A feature-setting dictionary contains a tuple of a kCTFontFeatureTypeIdentifierKey key-value pair and a kCTFontFeatureSelectorIdentifierKey key-value pair. Each setting dictionary indicates which setting should be turned on. In the case of duplicate or conflicting setting, the last setting in the list takes precedence. It is the caller's responsibility to handle exclusive and nonexclusive settings as necessary.
+
+    Available in OS X v10.5 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontFixedAdvanceAttribute
+
+    Key to specify a fixed advance to be used for a font reference. If present and specified, this attribute is used to specify a constant advance to override any font values. The value associated with this key is a float represented as a CFNumberRef object.
+
+    Available in OS X v10.5 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontOrientationAttribute
+
+    Key to specify a particular orientation for the glyphs of the font. The value associated with this key is an integer represented as a CFNumberRef object containing one of the constants in “Font Orientation Constants.” If you want to receive vertical metrics from a font for vertical rendering, specify kCTFontVerticalOrientation. If unspecified, the font uses its native orientation.
+
+    Available in OS X v10.5 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontFormatAttribute
+
+    Key to specify or obtain the recognized format of the font. The value associated with this key is an integer represented as a CFNumberRef object containing one of the constants in “Font Format Constants.”
+
+    Available in OS X v10.6 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontRegistrationScopeAttribute
+
+    Key to specify or obtain the font descriptor's registration scope. The value associated with this key is an integer represented as a CFNumberRef object containing one of the CTFontManagerScope enumerated values. A value of NULL can be returned for font descriptors that are not registered.
+
+    Available in OS X v10.6 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontPriorityAttribute
+
+    Key to specify or obtain the font priority used by font descriptors when resolving duplicates and sorting match results. The value associated with this key is an integer represented as a CFNumberRef object containing one of the values enumerated in “Font Priority Constants.” The higher the value, the higher the priority of the font. Only registered fonts have a priority. Unregistered font descriptors return NULL.
+
+    Available in OS X v10.6 and later.
+
+    Declared in CTFontDescriptor.h.
+kCTFontEnabledAttribute
+
+    Key to obtain the font enabled state. The returned value is an integer represented as a CFNumberRef object representing a Boolean value. Unregistered font descriptors return NULL, which is equivalent to false.
+
+    Available in OS X v10.6 and later.
+
+    Declared in CTFontDescriptor.h.
+
