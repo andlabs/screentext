@@ -1,6 +1,40 @@
 Windows, Mac - can enumerate individual fonts
 pango - have to enumerate whole families, then the fonts inside
 
+FEATURE PARITY
+PANGO				MAC						WINDOWS
+FamilyName			FontFamilyName			FaceName
+IsMonospace			Monospace				Default/Fixed/Var Pitch
+StyleName			StyleName				[available during Ex enum]
+Sizes for bitmap fonts
+IsSynthesized
+Style (Oblique/Italic)		Italic+slant amount			Italic
+Variant (SmallCaps)
+Weight (100..1000)		Bold flag + -1..1			0..100
+Weight Constants		only 0=Normal				Weight Constants
+Stretch (U,E,S,N C/E, N)	C/E flags + -1..1, only 0=N	[lfWidth?????]
+Gravity (N/S/E/W)		Orient. (def/H/V), V flag		escapement/orientation
+
+WINDOWS
+LOGFONT
+	Height			int32 :: logical units or zero
+	Escapement		int32 :: angle relative to horizontal in tenths of degrees
+	Orientation		int32 :: same as escapement but per-character
+	Weight			int32 :: [0..100]; special values exist
+	Italic				bool
+	Underline			bool
+	StrikeOut			bool
+	OutPrecision		(some enumeration)
+	CllipPrecision		(some enumeration)
+	Quality			(some enumeration)
+	PitchAndFamily	byte :: bitfield
+						pitch: (Default, Fixed, Variable)
+						family: (Decorative, DontCare, Modern, Roman, Script, Swiss)
+	FaceName		string
+
+
+
+
 PANGO :: https://developer.gnome.org/pango/1.30/pango-Fonts.html
 Family
 	Name		string
@@ -43,20 +77,3 @@ Variation
 	TODO
 Features
 	TODO
-
-WINDOWS
-LOGFONT
-	Width			int32 :: logical units or zero
-	Escapement		int32 :: angle relative to horizontal in tenths of degrees
-	Orientation		int32 :: same as escapement but per-character
-	Weight			int32 :: [0..100]; special values exist
-	Italic				bool
-	Underline			bool
-	StrikeOut			bool
-	OutPrecision		(some enumeration)
-	CllipPrecision		(some enumeration)
-	Quality			(some enumeration)
-	PitchAndFamily	byte :: bitfield
-						pitch: (Default, Fixed, Variable)
-						family: (Decorative, DontCare, Modern, Roman, Script, Swiss)
-	FaceName		string
