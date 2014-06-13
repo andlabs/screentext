@@ -10,12 +10,13 @@ import (
 
 // /* TODO really pangocairo? */
 // #cgo pkg-config: cairo pango pangocairo
-// #include <cairo.h>
+// #include <pango/pangocairo.h>
 import "C"
 
 type sysImage struct {
 	cr	*C.cairo_t
 	cs	*C.cairo_surface_t
+	pl	*C.PangoLayout
 }
 
 func cairoerr(status C.cairo_status_t) string {

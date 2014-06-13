@@ -7,6 +7,7 @@ import (
 )
 
 // #include <pango/pangocairo.h>
+// #include <stdlib.h>
 import "C"
 
 func sysListFonts() (fonts []Font) {
@@ -65,4 +66,37 @@ func sysListFonts() (fonts []Font) {
 
 	C.g_free(C.gpointer(unsafe.Pointer(xfamilies)))
 	return fonts
+}
+
+func (s *sysImage) setFont(f Font) {
+	if s.pl != nil {		// free old PangoLayout
+		C.g_object_unref(C.gpointer(unsafe.Pointer(s.pl)))
+	}
+	s.pl = C.pango_cairo_create_layout(s.cr)
+	desc := C.pango_font_description_new()
+	cfamily := C.CString(f.Family)
+	C.pango_font_description_set_family(desc, cfamily)
+	C.free(unsafe.Pointer(cfamily))
+	C.pango_font_description_set_size(desc, C.gint(f.Size * C.PANGO_SCALE))
+	if f.Bold {
+		C.pango_font_description_set_weight(desc, C.PANGO_WEIGHT_BOLD)
+	}
+	if f.Italic {
+		C.pango_font_description_set_style(desc, C.PANGO_STYLE_ITALIC)
+	}
+	if f.Vertical {
+		C.pango_font_description_set_gravity(desc, C.PANGO_GRAVITY_EAST)
+	}
+	C.pango_layout_set_font_description(s.pl, desc)
+	C.pango_font_description_free(desc)		// copy owned by s.pl according to the pangocairo docs
+}
+
+func (s *sysImage) text(str string, x int, y int) {
+	C.cairo_save(s.cr)
+	C.cairo_move_to(s.cr, C.double(x), C.double(y))
+	cstr := C.CString(str)
+	C.pango_layout_set_text(s.pl, cstr, -1)
+	C.free(unsafe.Pointer(cstr))
+	C.pango_cairo_show_layout(s.cr, s.pl)
+	C.cairo_restore(s.cr)
 }

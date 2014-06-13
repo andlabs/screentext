@@ -27,8 +27,16 @@ func myMain() {
 	}
 	i := NewImage(320, 240)
 	defer i.Close()
+	i.Pen(NewRGBPen(0,128,0).Line(Solid, 1))
+	i.Font(Font{
+		Family:	"Helvetica",
+		Size:		12,
+		Bold:		true,
+	})
+	i.Text("hello, world", 100, 20)
 	i.Pen(NewRGBPen(255, 0, 0).Line(Solid, 3))
 	i.Line(4, 4, 316, 236)
+	i.Line(100, 20, 101, 21)
 	w := ui.NewWindow("Test", 320, 240)
 	w.Open(ui.NewArea(320, 240, &areaHandler{
 		img:		i.Image(),
