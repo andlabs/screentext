@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"github.com/andlabs/ui"
 )
@@ -20,6 +21,10 @@ func (a *areaHandler) Mouse(me ui.MouseEvent) bool {
 }
 
 func myMain() {
+	fonts := ListFonts()
+	for _, font := range fonts {
+		fmt.Printf("%#v\n", font)
+	}
 	i := NewImage(320, 240)
 	defer i.Close()
 	i.Pen(NewRGBPen(255, 0, 0).Line(Solid, 3))

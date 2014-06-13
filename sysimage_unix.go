@@ -8,7 +8,8 @@ import (
 	"unsafe"
 )
 
-// #cgo pkg-config: cairo pango
+// /* TODO really pangocairo? */
+// #cgo pkg-config: cairo pango pangocairo
 // #include <cairo.h>
 import "C"
 
