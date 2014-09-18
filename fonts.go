@@ -5,7 +5,6 @@ package main
 // A Font is created by passing a FontSpec to NewFont().
 type Font interface {
 	// Close frees resources allocated to the Font.
-	// The effect of closing a Font that has been selected into an Image is undefined.
 	Close()
 
 	sysFont
