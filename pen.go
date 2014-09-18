@@ -6,10 +6,19 @@ import (
 )
 
 // Pen represents a pen.
-// Pens are used to draw lines, shape outlines, etc.
-type Pen struct {
-	lock		sync.Mutex
-	sysPen	*sysPen
+// Pens are used to draw lines, shape outlines, text, etc.
+// A Pen is created by passing a PenSpec to NewPen().
+type Pen interface {
+	sysPen
+}
+
+// PenSpec represents the properties of a Pen.
+type PenSpec struct {
+	R			uint8	// color
+	G			uint8
+	B			uint8
+	Thickness		uint		// in pixels
+	Line			Line
 }
 
 // Line represents a style of line for a Pen.
@@ -18,20 +27,7 @@ const (
 	Solid Line = iota
 )
 
-// NewRGBPen creates a new Pen with the given opaque color.
-// r, g, and b are in the range [0,255].
-func NewRGBPen(r uint, g uint, b uint) *Pen {
-	return &Pen{
-		sysPen:	mkSysPenRGB(r, g, b),
-	}
-}
-
-// Line sets the line type and thickness, in pixels, of p.
-// It then returns p.
-func (p *Pen) Line(linetype Line, thickness uint) *Pen {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	p.sysPen.setLineType(linetype, thickness)
-	return p
+// NewPen creates a Pen from the given PenSpec.
+func NewPen(spec PenSpec) Pen {
+	return newPen(spec)
 }

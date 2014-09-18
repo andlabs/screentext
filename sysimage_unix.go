@@ -43,19 +43,6 @@ func (s *sysImage) close() {
 	C.cairo_surface_destroy(s.cs)
 }
 
-func (s *sysImage) selectPen(p *Pen) {
-	C.cairo_set_source(s.cr, p.sysPen.pattern)
-	C.cairo_set_line_width(s.cr, C.double(p.sysPen.linewidth))
-	// TODO join
-	// TODO cap
-	if p.sysPen.interval == 0 {
-		C.cairo_set_dash(s.cr, nil, 0, 0)
-	} else {
-		interval := C.double(p.sysPen.interval)		// need to take its address
-		C.cairo_set_dash(s.cr, &interval, 1, 0)		// 0 = start immediately
-	}
-}
-
 func (s *sysImage) line(x0 int, y0 int, x1 int, y1 int) {
 	C.cairo_new_path(s.cr)
 	C.cairo_move_to(s.cr, C.double(x0), C.double(y0))
