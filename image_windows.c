@@ -78,5 +78,5 @@ void drawText(HDC dc, char *str, int x, int y)
 		xpanic("error computing text bounding box", GetLastError());
 	if (DrawTextW(dc, wstr, -1, &r, drawTextStyle) == 0)
 		xpanic("error drawing text", GetLastError());
-	freewstr(str);
+	free(str);
 }

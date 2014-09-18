@@ -1,14 +1,14 @@
 // 18 september 2014
 
 #include "winapi_windows.h"
-#include "_cgo_windows.h"
+#include "_cgo_export.h"
 
 struct lfd {
 	void *golist;
 	HDC dc;
 };
 
-static int CALLBACK EnumFontFamExProc(const LOGFONTW *lf, const TEXTMETRICW *tm, DWORD type, LPARAM lParam)
+static int CALLBACK enumFontProc(const LOGFONTW *lf, const TEXTMETRICW *tm, DWORD type, LPARAM lParam)
 {
 	struct lfd *lfd = (struct lfd *) lParam;
 	LONG h;
@@ -40,9 +40,9 @@ void listFonts(void *golist)
 		xpanic("error getting screen DC for ListFonts()", GetLastError());
 	ZeroMemory(&spec, sizeof (LOGFONTW));
 	spec.lfCharSet = DEFAULT_CHARSET;		// all character sets
-	spec.lfFaceNamme[0] = L'\0';				// all faces
+	spec.lfFaceName[0] = L'\0';				// all faces
 	spec.lfPitchAndFamily = 0;
-	EnumFontFamiliesExW(lfd.dc, &spec, enumFontProc, (LPRAM) (&lfd), 0);
+	EnumFontFamiliesExW(lfd.dc, &spec, enumFontProc, (LPARAM) (&lfd), 0);
 	if (ReleaseDC(NULL, lfd.dc) == 0)
 		xpanic("error releasing screen DC for ListFonts()", GetLastError());
 }
@@ -67,4 +67,26 @@ HFONT newFont(LOGFONTW *lf, char *family, LONG size)
 	if (ReleaseDC(NULL, dc) == 0)
 		xpanic("error releasing screen DC for NewFont() (needed for size calculation)", GetLastError());
 	return f;
+}
+
+void fontClose(HFONT f)
+{
+	if (DeleteObject(f) == 0)
+		xpanic("error closing Font", GetLastError());
+}
+
+HFONT fontSelectInto(HFONT font, HDC dc)
+{
+	HFONT prev;
+
+	prev = (HFONT) SelectObject(dc, font);
+	if (prev == NULL)
+		xpanic("error selecting Font into Image DC", GetLastError());
+	return prev;
+}
+
+void fontUnselect(HFONT font, HDC dc, HFONT prev)
+{
+	if (SelectObject(dc, prev) != font)
+		xpanic("error unselecting Font from Image DC", GetLastError());
 }

@@ -2,15 +2,12 @@
 
 package ndraw
 
-import (
-	// ...
-)
-
 // #include "winapi_windows.h"
 import "C"
 
 type sysPen interface {
-	// TODO
+	selectInto(C.HDC) C.HPEN
+	unselect(C.HDC, C.HPEN)
 }
 
 type pen struct {
@@ -32,4 +29,16 @@ func newPen(spec PenSpec) Pen {
 	xp.nSegments = 0
 	p.p = C.newPen(&xp)
 	return p
+}
+
+func (p *pen) Close() {
+	C.penClose(p.p)
+}
+
+func (p *pen) selectInto(dc C.HDC) C.HPEN {
+	return C.penSelectInto(p.p, dc)
+}
+
+func (p *pen) unselect(dc C.HDC, prev C.HPEN) {
+	C.penUnselect(p.p, dc, prev)
 }

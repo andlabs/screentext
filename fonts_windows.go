@@ -3,7 +3,6 @@
 package ndraw
 
 import (
-	"syscall"
 	"unsafe"
 )
 
@@ -19,7 +18,7 @@ func listFonts() []FontSpec {
 //export listFontsAdd
 func listFontsAdd(golist unsafe.Pointer, lf *C.LOGFONTW, family *C.char, size C.LONG) {
 	fl := (*[]FontSpec)(golist)
-	*fl = append(*fl, FontSpec[
+	*fl = append(*fl, FontSpec{
 		Family:		C.GoString(family),
 		Size:			uint(size),
 		// TODO this can be levelled... see what we did for cairo
@@ -32,7 +31,8 @@ func listFontsAdd(golist unsafe.Pointer, lf *C.LOGFONTW, family *C.char, size C.
 }
 
 type sysFont interface {
-	// TODO
+	selectInto(C.HDC) C.HFONT
+	unselect(C.HDC, C.HFONT)
 }
 
 type font struct {
@@ -56,6 +56,18 @@ func newFont(fs FontSpec) Font {
 	}
 	cfamily := C.CString(fs.Family)
 	defer freestr(cfamily)
-	f.f = C.newFont(&lf, cfamily, C.LONG(spec.Size))
+	f.f = C.newFont(&lf, cfamily, C.LONG(fs.Size))
 	return f
+}
+
+func (f *font) Close() {
+	C.fontClose(f.f)
+}
+
+func (f *font) selectInto(dc C.HDC) C.HFONT {
+	return C.fontSelectInto(f.f, dc)
+}
+
+func (f *font) unselect(dc C.HDC, prev C.HFONT) {
+	C.fontUnselect(f.f, dc, prev)
 }

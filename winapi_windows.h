@@ -16,6 +16,10 @@
 #define NTDDI_VERSION 0x05010000	/* according to Microsoft's sdkddkver.h */
 #include <windows.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+// /home/pietro/pkg/windows_386/github.com/andlabs/ui.a(_all.o): duplicate symbol reference: xpanic in both github.com/andlabs/ndraw(.text) and github.com/andlabs/ui(.text)
+#define xpanic ndraw_xpanic
 
 // pen_windows.c
 // the following struct is needed because there is no ExtCreatePenIndirect() :(
@@ -27,10 +31,16 @@ struct xpen {
 	DWORD *segments;
 };
 extern HPEN newPen(struct xpen *);
+extern void penClose(HPEN);
+extern HPEN penSelectInto(HPEN, HDC);
+extern void penUnselect(HPEN, HDC, HPEN);
 
 // fonts_windows.c
 extern void listFonts(void *);
 extern HFONT newFont(LOGFONTW *, char *, LONG);
+extern void fontClose(HFONT);
+extern HFONT fontSelectInto(HFONT, HDC);
+extern void fontUnselect(HFONT, HDC, HFONT);
 
 // image_windows.c
 extern HBITMAP newBitmap(int, int, void **);
@@ -39,5 +49,10 @@ extern void imageClose(HBITMAP, HDC, HBITMAP);
 extern void moveTo(HDC, int, int);
 extern void lineTo(HDC, int, int);
 extern void drawText(HDC, char *, int, int);
+
+// common_windows.c
+extern char *tostr(WCHAR *);
+extern WCHAR *towstr(char *);
+extern COLORREF colorref(uint8_t, uint8_t, uint8_t);
 
 #endif

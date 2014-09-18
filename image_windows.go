@@ -3,8 +3,9 @@
 package ndraw
 
 import (
-	"fmt"
 	"sync"
+	"image"
+	"unsafe"
 )
 
 // #cgo CFLAGS: --std=c99
@@ -50,7 +51,7 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	prev := p.selectInto(i.dc)
 	C.moveTo(i.dc, C.int(x1), C.int(y1))
 	C.lineTo(i.dc, C.int(x1), C.int(y1))
-	unselectPen(i.dc, prev)
+	p.unselect(i.dc, prev)
 }
 
 // TODO this only supports a single line of text
@@ -62,9 +63,9 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	prevpen := p.selectInto(i.dc)
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	C.drawText(i.dc, cstr, C.int(x), C.int(y)
-	unselectPen(i.dc, prevpen)
-	unselectFont(i.dc, prevfont)
+	C.drawText(i.dc, cstr, C.int(x), C.int(y))
+	p.unselect(i.dc, prevpen)
+	f.unselect(i.dc, prevfont)
 }
 
 // TODO merge with the cairo implementation
