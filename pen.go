@@ -1,5 +1,5 @@
 // 10 june 2014
-package main
+package ndraw
 
 // Pen represents a pen.
 // Pens are used to draw lines, shape outlines, text, etc.

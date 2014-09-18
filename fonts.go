@@ -1,5 +1,5 @@
 // 13 june 2014
-package main
+package ndraw
 
 // Font represents a font.
 // A Font is created by passing a FontSpec to NewFont().

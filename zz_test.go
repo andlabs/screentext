@@ -1,9 +1,10 @@
 // 10 june 2014
-package main
+package ndraw
 
 import (
 	"fmt"
 	"image"
+	"testing"
 	"github.com/andlabs/ui"
 )
 
@@ -64,10 +65,14 @@ func myMain() {
 	})
 }
 
-func main() {
+func init() {
 	go myMain()
 	err := ui.Go()
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestDummy(t *testing.T) {
+	// do nothing
 }

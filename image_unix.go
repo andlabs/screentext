@@ -1,5 +1,5 @@
 // 10 june 2014
-package main
+package ndraw
 
 import (
 	"fmt"
