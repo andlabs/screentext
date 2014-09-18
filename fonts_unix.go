@@ -73,8 +73,8 @@ type sysFont interface {
 }
 
 type font struct {
-	// each PangoLayout that this description has selected into it increments the refcount of the description
-	// this means the initial ref is ours for the keeping
+	// each PangoLayout copies whatever description has been selected into it
+	// this means the initial object is ours for the keeping
 	desc		*C.PangoFontDescription
 }
 
@@ -101,8 +101,11 @@ func newFont(spec FontSpec) Font {
 		C.pango_font_description_set_gravity(f.desc, C.PANGO_GRAVITY_EAST)
 	}
 //	C.pango_layout_set_font_description(s.pl, desc)
-//	C.pango_font_description_free(desc)		// copy owned by s.pl according to the pangocairo docs
 	return f
+}
+
+func (f *font) Close() {
+	C.pango_font_description_free(f.desc)
 }
 
 /* TODO

@@ -42,6 +42,11 @@ func newPen(spec PenSpec) Pen {
 	return p
 }
 
+func (p *pen) Close() {
+	C.cairo_pattern_destroy(p.pattern)
+	p.pattern = nil			// for good measure
+}
+
 func (p *pen) selectInto(cr *C.cairo_t) {
 	C.cairo_set_source(cr, p.pattern)
 	C.cairo_set_line_width(cr, C.double(p.linewidth))
