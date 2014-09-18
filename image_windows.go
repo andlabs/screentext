@@ -5,6 +5,7 @@ package ndraw
 import (
 	"sync"
 	"image"
+	"reflect"
 	"unsafe"
 )
 
@@ -73,10 +74,15 @@ func (i *imagetype) Image() (img *image.RGBA) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
+	var ppvBits reflect.SliceHeader
+
 	width := i.width
 	height := i.height
-	data := *((*[]uint32)(i.ppvBits))
-	stride := width * height * 4
+	ppvBits.Data = uintptr(i.ppvBits)
+	ppvBits.Len = width * height
+	ppvBits.Cap = ppvBits.Len
+	data := *((*[]uint32)(unsafe.Pointer(&ppvBits)))
+	stride := width * 4
 	img = image.NewRGBA(image.Rect(0, 0, width, height))
 	p := 0
 	q := 0
