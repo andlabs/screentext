@@ -73,7 +73,7 @@ type sysFont interface {
 }
 
 type font struct {
-	// each PangoLayout copies whatever description has been selected into it
+	// each PangoLayout copies whatever description has been selected into it (implied from the pangocairo example code)
 	// this means the initial object is ours for the keeping
 	desc		*C.PangoFontDescription
 }
