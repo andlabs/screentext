@@ -10,8 +10,8 @@ import (
 // #include <stdlib.h>
 import "C"
 
-func sysListFonts() (fonts []Font) {
-	fonts = make([]Font, 0, 1024)		// initial cap to avoid lots of small allocations
+func listFonts() (fonts []FontSpec) {
+	fonts = make([]FontSpec, 0, 1024)		// initial cap to avoid lots of small allocations
 
 	var xfamilies **C.PangoFontFamily
 	var nfamilies C.int
@@ -38,7 +38,7 @@ func sysListFonts() (fonts []Font) {
 		faces := *(*[]*C.PangoFontFace)(unsafe.Pointer(&sh))
 
 		for _, face := range faces {
-			f := Font{
+			f := FontSpec{
 				Family:		name,
 				Monospace:	monospace,
 			}
@@ -68,29 +68,44 @@ func sysListFonts() (fonts []Font) {
 	return fonts
 }
 
-func (s *sysImage) setFont(f Font) {
+type sysFont interface {
+	// TODO
+}
+
+type font struct {
+	// each PangoLayout that this description has selected into it increments the refcount of the description
+	// this means the initial ref is ours for the keeping
+	desc		*C.PangoFontDescription
+}
+
+func newFont(spec FontSpec) Font {
+/* TODO
 	if s.pl != nil {		// free old PangoLayout
 		C.g_object_unref(C.gpointer(unsafe.Pointer(s.pl)))
 	}
 	s.pl = C.pango_cairo_create_layout(s.cr)
-	desc := C.pango_font_description_new()
-	cfamily := C.CString(f.Family)
-	C.pango_font_description_set_family(desc, cfamily)
+*/
+	f := new(font)
+	f.desc := C.pango_font_description_new()
+	cfamily := C.CString(spec.Family)
+	C.pango_font_description_set_family(f.desc, cfamily)
 	C.free(unsafe.Pointer(cfamily))
-	C.pango_font_description_set_size(desc, C.gint(f.Size * C.PANGO_SCALE))
-	if f.Bold {
-		C.pango_font_description_set_weight(desc, C.PANGO_WEIGHT_BOLD)
+	C.pango_font_description_set_size(f.desc, C.gint(spec.Size * C.PANGO_SCALE))
+	if spec.Bold {
+		C.pango_font_description_set_weight(f.desc, C.PANGO_WEIGHT_BOLD)
 	}
-	if f.Italic {
-		C.pango_font_description_set_style(desc, C.PANGO_STYLE_ITALIC)
+	if spec.Italic {
+		C.pango_font_description_set_style(f.desc, C.PANGO_STYLE_ITALIC)
 	}
-	if f.Vertical {
-		C.pango_font_description_set_gravity(desc, C.PANGO_GRAVITY_EAST)
+	if spec.Vertical {
+		C.pango_font_description_set_gravity(f.desc, C.PANGO_GRAVITY_EAST)
 	}
-	C.pango_layout_set_font_description(s.pl, desc)
-	C.pango_font_description_free(desc)		// copy owned by s.pl according to the pangocairo docs
+//	C.pango_layout_set_font_description(s.pl, desc)
+//	C.pango_font_description_free(desc)		// copy owned by s.pl according to the pangocairo docs
+	return f
 }
 
+/* TODO
 func (s *sysImage) text(str string, x int, y int) {
 	C.cairo_save(s.cr)
 	C.cairo_move_to(s.cr, C.double(x), C.double(y))
@@ -100,3 +115,4 @@ func (s *sysImage) text(str string, x int, y int) {
 	C.pango_cairo_show_layout(s.cr, s.pl)
 	C.cairo_restore(s.cr)
 }
+*/

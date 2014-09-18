@@ -1,8 +1,14 @@
 // 13 june 2014
 package main
 
-// Font encodes information about a font.
-type Font struct {
+// Font represents a font.
+// A Font is created by passing a FontSpec to NewFont().
+type Font interface {
+	sysFont
+}
+
+// FontSpec encodes information about a font.
+type FontSpec struct {
 	Family		string
 	Size			uint		// in points
 	Bold			bool		// TODO can it be a factor? if not, what constitutes bold?
@@ -16,19 +22,17 @@ type Font struct {
 // The Size field of each returned Font shall be 0.
 // Duplicates may be returned if information about the font is lost.
 // TODO sort?
-func ListFonts() []Font {
-	return sysListFonts()
+func ListFonts() []FontSpec {
+	return listFonts()
 }
 
-// Font selects the current Font for drawing.
+// NewFont creates a Font from the given FontSpec.
 // TODO behavior if Size == 0
-func (i *Image) Font(f Font) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
-	i.sysImage.setFont(f)
+func NewFont(spec FontSpec) Font {
+	return newFont(spec)
 }
 
+/* TODO
 // Text draws the given string at the given position on the current Image in the given Pen and Font.
 // The top-left corner of the drawn string will be at the given point.
 // TODO pango seems to do this vertically offset?
@@ -39,3 +43,4 @@ func (i *Image) Text(text string, x int, y int) {
 
 	i.sysImage.text(text, x, y)
 }
+*/
