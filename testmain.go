@@ -16,9 +16,9 @@ func (a *areaHandler) Paint(r image.Rectangle) *image.RGBA {
 func (a *areaHandler) Key(ke ui.KeyEvent) bool {
 	return false
 }
-func (a *areaHandler) Mouse(me ui.MouseEvent) bool {
-	return false
-}
+func (a *areaHandler) Mouse(me ui.MouseEvent) {}
+
+var w ui.Window
 
 func myMain() {
 	fonts := ListFonts()
@@ -37,15 +37,21 @@ func myMain() {
 	i.Pen(NewRGBPen(255, 0, 0).Line(Solid, 3))
 	i.Line(4, 4, 316, 236)
 	i.Line(100, 20, 101, 21)
-	w := ui.NewWindow("Test", 320, 240)
-	w.Open(ui.NewArea(320, 240, &areaHandler{
-		img:		i.Image(),
-	}))
-	<-w.Closing
+	ui.Do(func() {
+		w = ui.NewWindow("Test", 320, 240, ui.NewArea(320, 240, &areaHandler{
+			img:		i.Image(),
+		}))
+		w.OnClosing(func() bool {
+			ui.Stop()
+			return true
+		})
+		w.Show()
+	})
 }
 
 func main() {
-	err := ui.Go(myMain)
+	go myMain()
+	err := ui.Go()
 	if err != nil {
 		panic(err)
 	}
