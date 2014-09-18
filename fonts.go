@@ -34,16 +34,3 @@ func ListFonts() []FontSpec {
 func NewFont(spec FontSpec) Font {
 	return newFont(spec)
 }
-
-/* TODO
-// Text draws the given string at the given position on the current Image in the given Pen and Font.
-// The top-left corner of the drawn string will be at the given point.
-// TODO pango seems to do this vertically offset?
-// TODO what if no Font was selected?
-func (i *Image) Text(text string, x int, y int) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
-	i.sysImage.text(text, x, y)
-}
-*/

@@ -69,7 +69,7 @@ func listFonts() (fonts []FontSpec) {
 }
 
 type sysFont interface {
-	// TODO
+	selectInto(*C.cairo_t) *C.PangoLayout
 }
 
 type font struct {
@@ -79,12 +79,6 @@ type font struct {
 }
 
 func newFont(spec FontSpec) Font {
-/* TODO
-	if s.pl != nil {		// free old PangoLayout
-		C.g_object_unref(C.gpointer(unsafe.Pointer(s.pl)))
-	}
-	s.pl = C.pango_cairo_create_layout(s.cr)
-*/
 	f := new(font)
 	f.desc := C.pango_font_description_new()
 	cfamily := C.CString(spec.Family)
@@ -100,7 +94,6 @@ func newFont(spec FontSpec) Font {
 	if spec.Vertical {
 		C.pango_font_description_set_gravity(f.desc, C.PANGO_GRAVITY_EAST)
 	}
-//	C.pango_layout_set_font_description(s.pl, desc)
 	return f
 }
 
@@ -108,14 +101,12 @@ func (f *font) Close() {
 	C.pango_font_description_free(f.desc)
 }
 
-/* TODO
-func (s *sysImage) text(str string, x int, y int) {
-	C.cairo_save(s.cr)
-	C.cairo_move_to(s.cr, C.double(x), C.double(y))
-	cstr := C.CString(str)
-	C.pango_layout_set_text(s.pl, cstr, -1)
-	C.free(unsafe.Pointer(cstr))
-	C.pango_cairo_show_layout(s.cr, s.pl)
-	C.cairo_restore(s.cr)
+func (f *font) selectInto(cr *C.cairo_t) *C.PangoLayout {
+	pl := C.pango_cairo_create_layout(cr)
+	C.pango_layout_set_font_description(pl, f.desc)
+	return pl
 }
-*/
+
+func deselectFont(pl *C.PangoLayout) {
+	C.g_object_unref(C.gpointer(unsafe.Pointer(pl)))
+}

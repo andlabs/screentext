@@ -47,6 +47,7 @@ func (p *pen) Close() {
 	p.pattern = nil			// for good measure
 }
 
+// assumes the image that owns cr is locked
 func (p *pen) selectInto(cr *C.cairo_t) {
 	C.cairo_set_source(cr, p.pattern)
 	C.cairo_set_line_width(cr, C.double(p.linewidth))
@@ -58,4 +59,9 @@ func (p *pen) selectInto(cr *C.cairo_t) {
 		interval := C.double(p.interval)			// need to take its address
 		C.cairo_set_dash(cr, &interval, 1, 0)		// 0 = start immediately
 	}
+}
+
+// assumes the image that owns cr is locked
+func deselectPen(cr *C.cairo_t) {
+	C.cairo_set_source_rgb(i.cr, 0, 0, 0)
 }

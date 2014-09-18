@@ -3,7 +3,8 @@ package main
 
 import (
 	"fmt"
-	"image"
+	"sync"
+	imagepkg "image"
 	"reflect"
 	"unsafe"
 )
@@ -13,41 +14,70 @@ import (
 // #include <pango/pangocairo.h>
 import "C"
 
-type sysImage struct {
-	cr	*C.cairo_t
-	cs	*C.cairo_surface_t
-	pl	*C.PangoLayout
+type sysImage interface {
+	// TODO
+}
+
+type image struct {
+	lock		sync.Mutex
+	cr		*C.cairo_t
+	cs		*C.cairo_surface_t
 }
 
 func cairoerr(status C.cairo_status_t) string {
 	return C.GoString(C.cairo_status_to_string(status))
 }
 
-func mkSysImage(width int, height int) (s *sysImage) {
-	s = new(sysImage)
-	s.cs = C.cairo_image_surface_create(
+func newImage(width int, height int) Image {
+	i = new(image)
+	i.cs = C.cairo_image_surface_create(
 		C.CAIRO_FORMAT_ARGB32,
 		C.int(width), C.int(height))
-	if status := C.cairo_surface_status(s.cs); status != C.CAIRO_STATUS_SUCCESS {
+	if status := C.cairo_surface_status(i.cs); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo surface for image: %v", cairoerr(status)))
 	}
-	s.cr = C.cairo_create(s.cs)
-	if status := C.cairo_status(s.cr); status != C.CAIRO_STATUS_SUCCESS {
+	i.cr = C.cairo_create(s.cs)
+	if status := C.cairo_status(i.cr); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo context for image: %v", cairoerr(status)))
 	}
-	return s
+	return i
 }
 
-func (s *sysImage) close() {
-	C.cairo_destroy(s.cr)
-	C.cairo_surface_destroy(s.cs)
+func (i *image) Close() {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	C.cairo_destroy(i.cr)
+	C.cairo_surface_destroy(i.cs)
 }
 
-func (s *sysImage) line(x0 int, y0 int, x1 int, y1 int) {
-	C.cairo_new_path(s.cr)
-	C.cairo_move_to(s.cr, C.double(x0), C.double(y0))
-	C.cairo_line_to(s.cr, C.double(x1), C.double(y1))
-	C.cairo_stroke(s.cr)
+func (i *image) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	p.selectInto(i.cr)
+	C.cairo_new_path(i.cr)
+	C.cairo_move_to(i.cr, C.double(x0), C.double(y0))
+	C.cairo_line_to(i.cr, C.double(x1), C.double(y1))
+	C.cairo_stroke(i.cr)
+	deselectPen(i.cr)
+}
+
+func (i *image) Text(str string, x int, y int, f Font, p Pen) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	p.selectInto(i.cr)
+	C.cairo_save(s.cr)
+	C.cairo_move_to(i.cr, C.double(x), C.double(y))
+	pl := f.selectInto(i.cr)
+	cstr := C.CString(str)
+	C.pango_layout_set_text(pl, cstr, -1)
+	C.free(unsafe.Pointer(cstr))
+	C.pango_cairo_show_layout(i.cr, pl)
+	C.cairo_restore(i.cr)
+	deselectFont(pl)
+	deselectPen(i.cr)
 }
 
 func cairoImageData(cs *C.cairo_surface_t) (data []uint32, stride int) {
@@ -63,11 +93,14 @@ func cairoImageData(cs *C.cairo_surface_t) (data []uint32, stride int) {
 	return data, stride
 }
 
-func (s *sysImage) toImage() (img *image.RGBA) {
+func (i *image) Image() (img *imagepkg.RGBA) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
 	width := int(C.cairo_image_surface_get_width(s.cs))
 	height := int(C.cairo_image_surface_get_height(s.cs))
 	data, stride := cairoImageData(s.cs)
-	img = image.NewRGBA(image.Rect(0, 0, width, height))
+	img = imagepkg.NewRGBA(imagepkg.Rect(0, 0, width, height))
 	p := 0
 	q := 0
 	for y := 0; y < height; y++ {
