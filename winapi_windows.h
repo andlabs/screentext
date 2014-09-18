@@ -32,4 +32,12 @@ extern HPEN newPen(struct xpen *);
 extern void listFonts(void *);
 extern HFONT newFont(LOGFONTW *, char *, LONG);
 
+// image_windows.c
+extern HBITMAP newBitmap(int, int, void **);
+extern HDC newDCForBitmap(HBITMAP, HBITMAP *);
+extern void imageClose(HBITMAP, HDC, HBITMAP);
+extern void moveTo(HDC, int, int);
+extern void lineTo(HDC, int, int);
+extern void drawText(HDC, char *, int, int);
+
 #endif
