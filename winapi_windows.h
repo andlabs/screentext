@@ -28,4 +28,8 @@ struct xpen {
 };
 extern HPEN newPen(struct xpen *);
 
+// fonts_windows.c
+extern void listFonts(void *);
+extern HFONT newFont(LOGFONTW *, char *, LONG);
+
 #endif
