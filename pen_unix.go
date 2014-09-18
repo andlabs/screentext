@@ -31,7 +31,7 @@ func tocairorgb(r uint8, g uint8, b uint8) (C.double, C.double, C.double) {
 func newPen(spec PenSpec) Pen {
 	p := new(pen)
 	p.pattern = C.cairo_pattern_create_rgb(tocairorgb(spec.R, spec.G, spec.B))
-	if status := C.cairo_pattern_status(s.pattern); status != C.CAIRO_STATUS_SUCCESS {
+	if status := C.cairo_pattern_status(p.pattern); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo pattern for RGB [%d %d %d]: %v", spec.R, spec.G, spec.B, cairoerr(status)))
 	}
 	p.linewidth = spec.Thickness
@@ -63,5 +63,5 @@ func (p *pen) selectInto(cr *C.cairo_t) {
 
 // assumes the image that owns cr is locked
 func deselectPen(cr *C.cairo_t) {
-	C.cairo_set_source_rgb(i.cr, 0, 0, 0)
+	C.cairo_set_source_rgb(cr, 0, 0, 0)
 }

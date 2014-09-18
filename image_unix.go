@@ -4,7 +4,7 @@ package main
 import (
 	"fmt"
 	"sync"
-	imagepkg "image"
+	"image"
 	"reflect"
 	"unsafe"
 )
@@ -12,13 +12,14 @@ import (
 // /* TODO really pangocairo? */
 // #cgo pkg-config: cairo pango pangocairo
 // #include <pango/pangocairo.h>
+// #include <stdlib.h>
 import "C"
 
 type sysImage interface {
 	// TODO
 }
 
-type image struct {
+type imagetype struct {
 	lock		sync.Mutex
 	cr		*C.cairo_t
 	cs		*C.cairo_surface_t
@@ -29,21 +30,21 @@ func cairoerr(status C.cairo_status_t) string {
 }
 
 func newImage(width int, height int) Image {
-	i = new(image)
+	i := new(imagetype)
 	i.cs = C.cairo_image_surface_create(
 		C.CAIRO_FORMAT_ARGB32,
 		C.int(width), C.int(height))
 	if status := C.cairo_surface_status(i.cs); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo surface for image: %v", cairoerr(status)))
 	}
-	i.cr = C.cairo_create(s.cs)
+	i.cr = C.cairo_create(i.cs)
 	if status := C.cairo_status(i.cr); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo context for image: %v", cairoerr(status)))
 	}
 	return i
 }
 
-func (i *image) Close() {
+func (i *imagetype) Close() {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
@@ -51,7 +52,7 @@ func (i *image) Close() {
 	C.cairo_surface_destroy(i.cs)
 }
 
-func (i *image) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
+func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
@@ -63,12 +64,12 @@ func (i *image) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	deselectPen(i.cr)
 }
 
-func (i *image) Text(str string, x int, y int, f Font, p Pen) {
+func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
 	p.selectInto(i.cr)
-	C.cairo_save(s.cr)
+	C.cairo_save(i.cr)
 	C.cairo_move_to(i.cr, C.double(x), C.double(y))
 	pl := f.selectInto(i.cr)
 	cstr := C.CString(str)
@@ -93,14 +94,14 @@ func cairoImageData(cs *C.cairo_surface_t) (data []uint32, stride int) {
 	return data, stride
 }
 
-func (i *image) Image() (img *imagepkg.RGBA) {
+func (i *imagetype) Image() (img *image.RGBA) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	width := int(C.cairo_image_surface_get_width(s.cs))
-	height := int(C.cairo_image_surface_get_height(s.cs))
-	data, stride := cairoImageData(s.cs)
-	img = imagepkg.NewRGBA(imagepkg.Rect(0, 0, width, height))
+	width := int(C.cairo_image_surface_get_width(i.cs))
+	height := int(C.cairo_image_surface_get_height(i.cs))
+	data, stride := cairoImageData(i.cs)
+	img = image.NewRGBA(image.Rect(0, 0, width, height))
 	p := 0
 	q := 0
 	for y := 0; y < height; y++ {

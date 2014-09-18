@@ -80,7 +80,7 @@ type font struct {
 
 func newFont(spec FontSpec) Font {
 	f := new(font)
-	f.desc := C.pango_font_description_new()
+	f.desc = C.pango_font_description_new()
 	cfamily := C.CString(spec.Family)
 	C.pango_font_description_set_family(f.desc, cfamily)
 	C.free(unsafe.Pointer(cfamily))

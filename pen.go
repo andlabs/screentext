@@ -1,10 +1,6 @@
 // 10 june 2014
 package main
 
-import (
-	"sync"
-)
-
 // Pen represents a pen.
 // Pens are used to draw lines, shape outlines, text, etc.
 // A Pen is created by passing a PenSpec to NewPen().
