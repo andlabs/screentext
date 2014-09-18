@@ -1,4 +1,7 @@
+// +build !windows,!darwin
+
 // 13 june 2014
+
 package ndraw
 
 import (
