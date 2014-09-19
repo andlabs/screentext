@@ -50,7 +50,7 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	defer i.lock.Unlock()
 
 	prev := p.selectInto(i.dc)
-	C.moveTo(i.dc, C.int(x1), C.int(y1))
+	C.moveTo(i.dc, C.int(x0), C.int(y0))
 	C.lineTo(i.dc, C.int(x1), C.int(y1))
 	p.unselect(i.dc, prev)
 }
@@ -94,6 +94,8 @@ func (i *imagetype) Image() (img *image.RGBA) {
 			img.Pix[p + 1] = uint8((data[q] >> 8) & 0xFF)		// G
 			img.Pix[p + 2] = uint8(data[q] & 0xFF)			// B
 			img.Pix[p + 3] = uint8((data[q] >> 24) & 0xFF)		// A
+			// the alpha value is inverted because right now it acts as a written flag: 0xFF means not touched by GDI, 0x00 means touched by GDI
+			img.Pix[p + 3] ^= 0xFF
 			p += 4
 			q++
 		}

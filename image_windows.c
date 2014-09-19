@@ -19,6 +19,8 @@ HBITMAP newBitmap(int dx, int dy, void **ppvBits)
 	b = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, (VOID **) ppvBits, NULL, 0);
 	if (b == NULL)
 		xpanic("error creating Image", GetLastError());
+	// see image.Image() in image_windows.go for details
+	memset(*ppvBits, 0xFF, dx * dy * 4);
 	return b;
 }
 
@@ -74,6 +76,8 @@ void drawText(HDC dc, char *str, int x, int y)
 	r.top = (LONG) y;
 	r.right = r.left;
 	r.bottom = r.top;
+	if (SetBkMode(dc, TRANSPARENT) == 0)
+		xpanic("error setting text drawing to be transparent", GetLastError());
 	if (DrawTextW(dc, wstr, -1, &r, DT_CALCRECT | drawTextStyle) == 0)
 		xpanic("error computing text bounding box", GetLastError());
 	if (DrawTextW(dc, wstr, -1, &r, drawTextStyle) == 0)

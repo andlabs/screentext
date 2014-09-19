@@ -21,6 +21,8 @@ type Image interface {
 	Text(text string, x int, y int, f Font, p Pen)
 
 	// Image produces a copy of i as a Go image.RGBA.
+	// Note that for technical reasons, the values of the Alpha bytes of the image are undefined; you cannot reasonably blend the result of Image() with something else.
+	// TODO alternative
 	Image() *image.RGBA
 
 	sysImage
