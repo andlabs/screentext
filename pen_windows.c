@@ -19,13 +19,15 @@ void penClose(HPEN p)
 		xpanic("error closing Pen", GetLastError());
 }
 
-HPEN penSelectInto(HPEN pen, HDC dc)
+HPEN penSelectInto(HPEN pen, HDC dc, COLORREF color)
 {
 	HPEN prev;
 
 	prev = (HPEN) SelectObject(dc, pen);
 	if (prev == NULL)
 		xpanic("error selecting Pen into Image DC", GetLastError());
+	if (SetTextColor(dc, color) == CLR_INVALID)
+		xpanic("error selecting text color from Pen into Image DC", GetLastError());
 	return prev;
 }
 

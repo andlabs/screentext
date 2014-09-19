@@ -64,23 +64,14 @@ void lineTo(HDC dc, int x, int y)
 		xpanic("error drawing line to point", GetLastError());
 }
 
-#define drawTextStyle (DT_LEFT | DT_TOP | DT_NOPREFIX | DT_SINGLELINE)
-
 void drawText(HDC dc, char *str, int x, int y)
 {
 	WCHAR *wstr;
-	RECT r;
 
 	wstr = towstr(str);
-	r.left = (LONG) x;
-	r.top = (LONG) y;
-	r.right = r.left;
-	r.bottom = r.top;
 	if (SetBkMode(dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to be transparent", GetLastError());
-	if (DrawTextW(dc, wstr, -1, &r, DT_CALCRECT | drawTextStyle) == 0)
-		xpanic("error computing text bounding box", GetLastError());
-	if (DrawTextW(dc, wstr, -1, &r, drawTextStyle) == 0)
+	if (TextOutW(dc, x, y, wstr, wcslen(wstr)) == 0)
 		xpanic("error drawing text", GetLastError());
 	free(str);
 }

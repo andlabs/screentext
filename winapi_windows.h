@@ -32,7 +32,7 @@ struct xpen {
 };
 extern HPEN newPen(struct xpen *);
 extern void penClose(HPEN);
-extern HPEN penSelectInto(HPEN, HDC);
+extern HPEN penSelectInto(HPEN, HDC, COLORREF);
 extern void penUnselect(HPEN, HDC, HPEN);
 
 // fonts_windows.c
