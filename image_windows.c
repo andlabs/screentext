@@ -119,6 +119,7 @@ void line(struct image *i, int x0, int y0, int x1, int y1, HPEN pen, uint8_t alp
 	imageClose(li);
 }
 
+// TODO replace with a brush and FillPath()
 void drawText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, uint8_t alpha)
 {
 	WCHAR *wstr;
@@ -130,10 +131,16 @@ void drawText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, ui
 	ti = newImage(i->width, i->height, TRUE);
 	prevFont = fontSelectInto(font, ti->dc);
 	prevPen = penSelectInto(pen, ti->dc);
+	if (BeginPath(ti->dc) == 0)
+		xpanic("error beginning text drawing path", GetLastError());
 	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
-		xpanic("error setting text drawing to be transparent", GetLastError());
+		xpanic("error setting text drawing to have nonopaque background", GetLastError());
 	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
-		xpanic("error drawing text", GetLastError());
+		xpanic("error drawing text path", GetLastError());
+	if (EndPath(ti->dc) == 0)
+		xpanic("error ending text drawing path", GetLastError());
+	if (StrokePath(ti->dc) == 0)
+		xpanic("error stroking text drawing path", GetLastError());
 	imageInternalBlend(i, ti, alpha);
 	penUnselect(pen, ti->dc, prevPen);
 	fontUnselect(font, ti->dc, prevFont);
