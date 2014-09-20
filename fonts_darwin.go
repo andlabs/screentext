@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// TODO
+// #include "coregfx_darwin.h"
 import "C"
 
 func listFonts() (fonts []FontSpec) {

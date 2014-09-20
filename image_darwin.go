@@ -10,8 +10,7 @@ import (
 
 // #cgo CFLAGS: -mmacosx-version-min=10.6 -DMACOSX_DEPLOYMENT_TARGET=10.6
 // #cgo LDFLAGS: -mmacosx-version-min=10.6 -framework ApplicationServices
-// /* TODO versioning macros */
-// #include <ApplicationServices/ApplicationServices.h>
+// #include "coregfx_darwin.h"
 import "C"
 
 // TODO use layers?
