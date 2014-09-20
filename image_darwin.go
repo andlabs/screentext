@@ -66,11 +66,7 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	defer i.lock.Unlock()
 
 	p.selectInto(i.context)
-	line := C.CTLineCreateWithAttributedString(f.toAttributedString(str))
-	if line == nil {
-		// TODO get error reason
-		panic("error creating CTLine for drawing text")
-	}
+	line := f.toCTLine(str)
 	C.CGContextSetTextDrawingMode(i.context, C.kCGTextStroke)
 	C.CGContextSetTextPosition(i.context, C.CGFloat(x), C.CGFloat(y))
 	C.CTLineDraw(line, i.context)
