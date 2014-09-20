@@ -1,0 +1,105 @@
+// 20 september 2014
+
+package ndraw
+
+import (
+	"image"
+	"reflect"
+	"unsafe"
+)
+
+// #cgo CFLAGS: -mmacosx-version-min=10.6 -DMACOSX_DEPLOYMENT_TARGET=10.6
+// #cgo LDFLAGS: -mmacosx-version-min=10.6 -framework ApplicationServices
+// /* TODO versioning macros */
+// #include <ApplicationServices/ApplicationServices.h>
+import "C"
+
+// TODO use layers?
+
+type sysImage interface {
+	// TODO
+}
+
+type imagetype struct {
+	context		C.CGContextRef
+	colorspace	C.CGColorSpaceRef
+}
+
+func newImage(width int, height int) Image {
+	i := new(imagetype)
+	i.colorspace = C.CGColorSpaceCreateWithName(C.kCGColorSpaceGenericRGB)
+	if i.colorspace == nil {
+		// TODO get error reason
+		panic("error creating color space in NewImage()")
+	}
+	i.context = C.CGBitmapContextCreate(nil,
+		C.size_t(width), C.size_t(height),
+		8, 0, i.colorspace,
+		// this matches image.RGBA
+		C.kCGImageAlphaPremultipliedLast | C.kCGBitmapByteOrder32Big)
+	if i.context == nil {
+		// TODO get error reason
+		panic("error creating CGContextRef in NewImage()")
+	}
+	return i
+}
+
+func (i *imagetype) Close() {
+	C.CGContextRelease(i.context)
+	C.CGColorSpaceRelease(i.colorspace)
+}
+
+func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	p.selectInto(i.context)
+	C.CGContextBeginPath(i.context)
+	C.CGContextMoveToPoint(i.context, C.CGFloat(x0), C.CGFloat(y0))
+	C.CGContextAddLineToPoint(i.context, C.CGFloat(x1), C.CGFloat(y1))
+	C.CGContextStrokePath(i.context)
+}
+
+// TODO fills blah blah blah
+func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	p.selectInto(i.context)
+	line := C.CTLineCreateWithAttributedString(f.toAttributedString(str))
+	if line == nil {
+		// TODO get error reason
+		panic("error creating CTLine for drawing text")
+	}
+	C.CGContextSetTextDrawingMode(i.context, C.kCGTextStroke)
+	C.CGContextSetTextPosition(i.context, C.CGFloat(x), C.CGFloat(y))
+	C.CTLineDraw(line, i.context)
+	C.CFRelease(line)
+}
+
+func (i *imagetype) Image() (img *image.RGBA) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	var srcs reflect.SliceHeader
+
+	// no need to explicitly flush anything as far as I can see (TODO)
+	// there is a CGContextFlush() but it explicitly ignores bitmap contexts
+	height := C.CGBitmapContextGetHeight(i.context)
+	stride := C.CGBitmapContextGetBytesPerRow(i.context)
+	srcs.Data = uintptr(C.CGBitmapContextGetData(i.context))
+	srcs.Len = int(stride * height)
+	srcs.Cap = srcs.Len
+	src := *((*[]uint8)(unsafe.Pointer(&srcs)))
+	img = image.NewRGBA(image.NewRect(0, 0, int(C.CGBitmapContextGetWidth(i.context)), int(height))
+	p := 0
+	q := 0
+	for y := 0; y < int(height); y++ {
+		nextp := p + img.Stride
+		nextq := q + int(stride)
+		copy(img.Pix[p:nextp], src[q:nextq])
+		p = nextp
+		q = nextq
+	}
+	return img
+}
