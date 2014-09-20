@@ -67,18 +67,22 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	deselectPen(i.cr)
 }
 
+// TODO should be cairo_fill() but we need a brush - see https://developer.gnome.org/cairo/1.10/cairo-Paths.html#cairo-glyph-path
+// https://developer.gnome.org/pango/1.30/pango-Cairo-Rendering.html#PangoCairoShapeRendererFunc implies that both stroking AND filling are done, but https://git.gnome.org/browse/pango/tree/pango/pangocairo-render.c shows that stroking is only done for unknown character boxes; TODO test
 func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
 	p.selectInto(i.cr)
 	C.cairo_save(i.cr)
+	C.cairo_new_path(i.cr)
 	C.cairo_move_to(i.cr, C.double(x), C.double(y))
 	pl := f.selectInto(i.cr)
 	cstr := C.CString(str)
 	C.pango_layout_set_text(pl, cstr, -1)
 	C.free(unsafe.Pointer(cstr))
-	C.pango_cairo_show_layout(i.cr, pl)
+	C.pango_cairo_layout_path(i.cr, pl)
+	C.cairo_stroke(i.cr)
 	C.cairo_restore(i.cr)
 	deselectFont(pl)
 	deselectPen(i.cr)
