@@ -27,11 +27,13 @@ struct image {
 	HDC dc;
 	HBITMAP prev;
 	VOID *ppvBits;
+	int width;
+	int height;
 };
-extern struct image *newImage(int, int);
+extern struct image *newImage(int, int, BOOL);
 extern void imageClose(struct image *);
-extern void line(struct image *, int, int, int, int);
-extern void drawText(struct image *, char *, int, int);
+extern void line(struct image *, int, int, int, int, HPEN, uint8_t);
+extern void drawText(struct image *, char *, int, int, HFONT, HPEN, uint8_t);
 
 
 // pen_windows.c
@@ -45,7 +47,7 @@ struct xpen {
 };
 extern HPEN newPen(struct xpen *);
 extern void penClose(HPEN);
-extern HPEN penSelectInto(HPEN, HDC, COLORREF);
+extern HPEN penSelectInto(HPEN, HDC);
 extern void penUnselect(HPEN, HDC, HPEN);
 
 // fonts_windows.c

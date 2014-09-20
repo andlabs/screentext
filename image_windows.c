@@ -3,7 +3,7 @@
 #include "winapi_windows.h"
 #include "_cgo_export.h"
 
-struct image *newImage(int dx, int dy)
+struct image *newImage(int dx, int dy, BOOL internal)
 {
 	struct image *i;
 	BITMAPINFO bi;
@@ -25,8 +25,9 @@ struct image *newImage(int dx, int dy)
 	i->bitmap = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, &i->ppvBits, NULL, 0);
 	if (i->bitmap == NULL)
 		xpanic("error creating image in newImage()", GetLastError());
-	// see image.Image() in image_windows.go for details
-	memset(i->ppvBits, 0xFF, dx * dy * 4);
+	if (internal)
+		// see imageInternalBlend() below for details
+		memset(i->ppvBits, 0xFF, dx * dy * 4);
 
 	screen = GetDC(NULL);
 	if (screen == NULL)
@@ -40,6 +41,8 @@ struct image *newImage(int dx, int dy)
 	if (ReleaseDC(NULL, screen) == 0)
 		xpanic("error releasing screen DC for newImage()", GetLastError());
 
+	i->width = dx;
+	i->height = dy;
 	return i;
 }
 
@@ -54,22 +57,86 @@ void imageClose(struct image *i)
 	free(i);
 }
 
-void line(struct image *i, int x0, int y0, int x1, int y1)
+// GDI doesn't natively support alpha blending outside of AlphaBlend(), but there's a trick: GDI sets the alpha byte of any written pixel to 0x00
+// this means we can manually patch in alpha values
+// this is important since we must also premultiply
+// so what we do is: all drawing operations actually draw to an internal bitmap that's set to all 0xFF (see internal in newImage() above) and then we patch in the alpha ourselves here before calling AlphaBlend()
+// in the end, the only function that should ever be called to a non-internal image is AlphaBlend()
+static void imageInternalBlend(struct image *dest, struct image *src, uint8_t alpha)
 {
-	if (MoveToEx(i->dc, x0, y0, NULL) == 0)
-		xpanic("error moving to point", GetLastError());
-	if (LineTo(i->dc, x1, y1) == 0)
-		xpanic("error drawing line to point", GetLastError());
+	uint8_t *sp;
+	int x, y;
+	BLENDFUNCTION bf;
+
+	// first make sure GDI has written everything
+	// TODO this is per-thread...
+	if (GdiFlush() == 0)
+		xpanic("error flushing GDI buffers", GetLastError());
+	sp = (uint8_t *) src->ppvBits;
+	for (y = 0; y < src->height; y++)
+		for (x = 0; x < src->width; x++)
+			if (*(sp + 3) == 0xFF) {		// not written by GDI; make transparent
+				*sp++ = 0;
+				*sp++ = 0;
+				*sp++ = 0;
+				*sp++ = 0;
+			} else {					// written by GDI; premultiply and set alpha
+				// premultiplication steps from http://msdn.microsoft.com/en-us/library/dd183393%28v=vs.85%29.aspx
+				*sp = (*sp * alpha) / 0xFF;		// R
+				sp++;
+				*sp = (*sp * alpha) / 0xFF;		// G
+				sp++;
+				*sp = (*sp * alpha) / 0xFF;		// B
+				sp++;
+				*sp = alpha;					// A
+				sp++;
+			}
+	// and now blend
+	ZeroMemory(&bf, sizeof (BLENDFUNCTION));
+	bf.BlendOp = AC_SRC_OVER;
+	bf.BlendFlags = 0;
+	bf.SourceConstantAlpha = 255;		// per-pixel alpha
+	bf.AlphaFormat = AC_SRC_ALPHA;
+	if (AlphaBlend(dest->dc, 0, 0, dest->width, dest->height,
+		src->dc, 0, 0, src->width, src->height,
+		bf) == FALSE)
+		xpanic("error doing internal alpha-blending of image draw", GetLastError());
 }
 
-void drawText(struct image *i, char *str, int x, int y)
+void line(struct image *i, int x0, int y0, int x1, int y1, HPEN pen, uint8_t alpha)
+{
+	struct image *li;
+	HPEN prev;
+
+	li = newImage(i->width, i->height, TRUE);
+	prev = penSelectInto(pen, li->dc);
+	if (MoveToEx(li->dc, x0, y0, NULL) == 0)
+		xpanic("error moving to point", GetLastError());
+	if (LineTo(li->dc, x1, y1) == 0)
+		xpanic("error drawing line to point", GetLastError());
+	imageInternalBlend(i, li, alpha);
+	penUnselect(pen, li->dc, prev);
+	imageClose(li);
+}
+
+void drawText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, uint8_t alpha)
 {
 	WCHAR *wstr;
+	struct image *ti;
+	HPEN prevPen;
+	HFONT prevFont;
 
 	wstr = towstr(str);
-	if (SetBkMode(i->dc, TRANSPARENT) == 0)
+	ti = newImage(i->width, i->height, TRUE);
+	prevFont = fontSelectInto(font, ti->dc);
+	prevPen = penSelectInto(pen, ti->dc);
+	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to be transparent", GetLastError());
-	if (TextOutW(i->dc, x, y, wstr, wcslen(wstr)) == 0)
+	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
 		xpanic("error drawing text", GetLastError());
+	imageInternalBlend(i, ti, alpha);
+	penUnselect(pen, ti->dc, prevPen);
+	fontUnselect(font, ti->dc, prevFont);
+	imageClose(ti);
 	free(str);
 }

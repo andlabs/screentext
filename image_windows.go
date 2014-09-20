@@ -10,7 +10,7 @@ import (
 )
 
 // #cgo CFLAGS: --std=c99
-// #cgo LDFLAGS: -luser32 -lkernel32 -lgdi32
+// #cgo LDFLAGS: -luser32 -lkernel32 -lgdi32 -lmsimg32
 // #include "winapi_windows.h"
 import "C"
 
@@ -27,7 +27,7 @@ type imagetype struct {
 
 func newImage(width int, height int) Image {
 	i := new(imagetype)
-	i.i = C.newImage(C.int(width), C.int(height))
+	i.i = C.newImage(C.int(width), C.int(height), C.FALSE)
 	i.width = width
 	i.height = height
 	return i
@@ -45,10 +45,8 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	// TODO get rid of i.i.dc access
-	prev := p.selectInto(i.i.dc)
-	C.line(i.i, C.int(x0), C.int(y0), C.int(x1), C.int(y1))
-	p.unselect(i.i.dc, prev)
+	pen, alpha := p.get()
+	C.line(i.i, C.int(x0), C.int(y0), C.int(x1), C.int(y1), pen, alpha)
 }
 
 // TODO this only supports a single line of text
@@ -56,13 +54,11 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	prevfont := f.selectInto(i.i.dc)
-	prevpen := p.selectInto(i.i.dc)
+	font := f.get()
+	pen, alpha := p.get()
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	C.drawText(i.i, cstr, C.int(x), C.int(y))
-	p.unselect(i.i.dc, prevpen)
-	f.unselect(i.i.dc, prevfont)
+	C.drawText(i.i, cstr, C.int(x), C.int(y), font, pen, alpha)
 }
 
 // TODO merge with the cairo implementation
@@ -91,8 +87,6 @@ func (i *imagetype) Image() (img *image.RGBA) {
 			img.Pix[p + 1] = uint8((data[q] >> 8) & 0xFF)		// G
 			img.Pix[p + 2] = uint8(data[q] & 0xFF)			// B
 			img.Pix[p + 3] = uint8((data[q] >> 24) & 0xFF)		// A
-			// the alpha value is inverted because right now it acts as a written flag: 0xFF means not touched by GDI, 0x00 means touched by GDI
-			img.Pix[p + 3] ^= 0xFF
 			p += 4
 			q++
 		}

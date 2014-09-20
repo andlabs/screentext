@@ -31,8 +31,7 @@ func listFontsAdd(golist unsafe.Pointer, lf *C.LOGFONTW, family *C.char, size C.
 }
 
 type sysFont interface {
-	selectInto(C.HDC) C.HFONT
-	unselect(C.HDC, C.HFONT)
+	get() C.HFONT
 }
 
 type font struct {
@@ -64,10 +63,6 @@ func (f *font) Close() {
 	C.fontClose(f.f)
 }
 
-func (f *font) selectInto(dc C.HDC) C.HFONT {
-	return C.fontSelectInto(f.f, dc)
-}
-
-func (f *font) unselect(dc C.HDC, prev C.HFONT) {
-	C.fontUnselect(f.f, dc, prev)
+func (f *font) get() C.HFONT {
+	return f.f
 }
