@@ -21,6 +21,19 @@
 // /home/pietro/pkg/windows_386/github.com/andlabs/ui.a(_all.o): duplicate symbol reference: xpanic in both github.com/andlabs/ndraw(.text) and github.com/andlabs/ui(.text)
 #define xpanic ndraw_xpanic
 
+// image_windows.c
+struct image {
+	HBITMAP bitmap;
+	HDC dc;
+	HBITMAP prev;
+	VOID *ppvBits;
+};
+extern struct image *newImage(int, int);
+extern void imageClose(struct image *);
+extern void line(struct image *, int, int, int, int);
+extern void drawText(struct image *, char *, int, int);
+
+
 // pen_windows.c
 // the following struct is needed because there is no ExtCreatePenIndirect() :(
 struct xpen {
@@ -41,14 +54,6 @@ extern HFONT newFont(LOGFONTW *, char *, LONG);
 extern void fontClose(HFONT);
 extern HFONT fontSelectInto(HFONT, HDC);
 extern void fontUnselect(HFONT, HDC, HFONT);
-
-// image_windows.c
-extern HBITMAP newBitmap(int, int, void **);
-extern HDC newDCForBitmap(HBITMAP, HBITMAP *);
-extern void imageClose(HBITMAP, HDC, HBITMAP);
-extern void moveTo(HDC, int, int);
-extern void lineTo(HDC, int, int);
-extern void drawText(HDC, char *, int, int);
 
 // common_windows.c
 extern char *tostr(WCHAR *);

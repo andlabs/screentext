@@ -3,10 +3,16 @@
 #include "winapi_windows.h"
 #include "_cgo_export.h"
 
-HBITMAP newBitmap(int dx, int dy, void **ppvBits)
+struct image *newImage(int dx, int dy)
 {
+	struct image *i;
 	BITMAPINFO bi;
-	HBITMAP b;
+	HDC screen;
+
+	i = (struct image *) malloc(sizeof (struct image));
+	if (i == NULL)		// TODO errno
+		xpanic("memory exhausted allocating image data in newImage()", GetLastError());
+	ZeroMemory(i, sizeof (struct image));
 
 	ZeroMemory(&bi, sizeof (BITMAPINFO));
 	bi.bmiHeader.biSize = sizeof (BITMAPINFOHEADER);
@@ -16,62 +22,54 @@ HBITMAP newBitmap(int dx, int dy, void **ppvBits)
 	bi.bmiHeader.biBitCount = 32;
 	bi.bmiHeader.biCompression = BI_RGB;
 	bi.bmiHeader.biSizeImage = (DWORD) (dx * dy * 4);
-	b = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, (VOID **) ppvBits, NULL, 0);
-	if (b == NULL)
-		xpanic("error creating Image", GetLastError());
+	i->bitmap = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, &i->ppvBits, NULL, 0);
+	if (i->bitmap == NULL)
+		xpanic("error creating image in newImage()", GetLastError());
 	// see image.Image() in image_windows.go for details
-	memset(*ppvBits, 0xFF, dx * dy * 4);
-	return b;
-}
-
-HDC newDCForBitmap(HBITMAP bitmap, HBITMAP *prev)
-{
-	HDC screen, dc;
+	memset(i->ppvBits, 0xFF, dx * dy * 4);
 
 	screen = GetDC(NULL);
 	if (screen == NULL)
-		xpanic("error getting screen DC for NewImage()", GetLastError());
-	dc = CreateCompatibleDC(screen);
-	if (dc == NULL)
-		xpanic("error creating memory DC for NewImage()", GetLastError());
-	*prev = (HBITMAP) SelectObject(dc, bitmap);
-	if (*prev == NULL)
-		xpanic("error selecting bitmap into memory DC for NewImage()", GetLastError());
+		xpanic("error getting screen DC for newImage()", GetLastError());
+	i->dc = CreateCompatibleDC(screen);
+	if (i->dc == NULL)
+		xpanic("error creating memory DC for newImage()", GetLastError());
+	i->prev = (HBITMAP) SelectObject(i->dc, i->bitmap);
+	if (i->prev == NULL)
+		xpanic("error selecting bitmap into memory DC for newImage()", GetLastError());
 	if (ReleaseDC(NULL, screen) == 0)
-		xpanic("error releasing screen DC for NewImage()", GetLastError());
-	return dc;
+		xpanic("error releasing screen DC for newImage()", GetLastError());
+
+	return i;
 }
 
-void imageClose(HBITMAP bitmap, HDC dc, HBITMAP prev)
+void imageClose(struct image *i)
 {
-	if (SelectObject(dc, prev) != bitmap)
+	if (SelectObject(i->dc, i->prev) != i->bitmap)
 		xpanic("error restoring initial DC bitmap in Image.Close()", GetLastError());
-	if (DeleteDC(dc) == 0)
+	if (DeleteDC(i->dc) == 0)
 		xpanic("error removing image DC in Image.Close()", GetLastError());
-	if (DeleteObject(bitmap) == 0)
+	if (DeleteObject(i->bitmap) == 0)
 		xpanic("error removing bitmap in Image.Close()", GetLastError());
+	free(i);
 }
 
-void moveTo(HDC dc, int x, int y)
+void line(struct image *i, int x0, int y0, int x1, int y1)
 {
-	if (MoveToEx(dc, x, y, NULL) == 0)
+	if (MoveToEx(i->dc, x0, y0, NULL) == 0)
 		xpanic("error moving to point", GetLastError());
-}
-
-void lineTo(HDC dc, int x, int y)
-{
-	if (LineTo(dc, x, y) == 0)
+	if (LineTo(i->dc, x1, y1) == 0)
 		xpanic("error drawing line to point", GetLastError());
 }
 
-void drawText(HDC dc, char *str, int x, int y)
+void drawText(struct image *i, char *str, int x, int y)
 {
 	WCHAR *wstr;
 
 	wstr = towstr(str);
-	if (SetBkMode(dc, TRANSPARENT) == 0)
+	if (SetBkMode(i->dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to be transparent", GetLastError());
-	if (TextOutW(dc, x, y, wstr, wcslen(wstr)) == 0)
+	if (TextOutW(i->dc, x, y, wstr, wcslen(wstr)) == 0)
 		xpanic("error drawing text", GetLastError());
 	free(str);
 }

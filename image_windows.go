@@ -20,18 +20,14 @@ type sysImage interface {
 
 type imagetype struct {
 	lock		sync.Mutex
-	bitmap	C.HBITMAP
-	dc		C.HDC
-	prev		C.HBITMAP
-	ppvBits	unsafe.Pointer
+	i		*C.struct_image
 	width	int		// save these here
 	height	int
 }
 
 func newImage(width int, height int) Image {
 	i := new(imagetype)
-	i.bitmap = C.newBitmap(C.int(width), C.int(height), &i.ppvBits)
-	i.dc = C.newDCForBitmap(i.bitmap, &i.prev)
+	i.i = C.newImage(C.int(width), C.int(height))
 	i.width = width
 	i.height = height
 	return i
@@ -41,7 +37,7 @@ func (i *imagetype) Close() {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	C.imageClose(i.bitmap, i.dc, i.prev)
+	C.imageClose(i.i)
 }
 
 // TODO this is [x0y0, x0y1) - the pixel at (x1,y1) is not drawn; check everything
@@ -49,10 +45,10 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	prev := p.selectInto(i.dc)
-	C.moveTo(i.dc, C.int(x0), C.int(y0))
-	C.lineTo(i.dc, C.int(x1), C.int(y1))
-	p.unselect(i.dc, prev)
+	// TODO get rid of i.i.dc access
+	prev := p.selectInto(i.i.dc)
+	C.line(i.i, C.int(x0), C.int(y0), C.int(x1), C.int(y1))
+	p.unselect(i.i.dc, prev)
 }
 
 // TODO this only supports a single line of text
@@ -60,13 +56,13 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	prevfont := f.selectInto(i.dc)
-	prevpen := p.selectInto(i.dc)
+	prevfont := f.selectInto(i.i.dc)
+	prevpen := p.selectInto(i.i.dc)
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	C.drawText(i.dc, cstr, C.int(x), C.int(y))
-	p.unselect(i.dc, prevpen)
-	f.unselect(i.dc, prevfont)
+	C.drawText(i.i, cstr, C.int(x), C.int(y))
+	p.unselect(i.i.dc, prevpen)
+	f.unselect(i.i.dc, prevfont)
 }
 
 // TODO merge with the cairo implementation
@@ -78,7 +74,8 @@ func (i *imagetype) Image() (img *image.RGBA) {
 
 	width := i.width
 	height := i.height
-	ppvBits.Data = uintptr(i.ppvBits)
+	// TODO get rid of direct i.i.ppvBits access
+	ppvBits.Data = uintptr(unsafe.Pointer(i.i.ppvBits))
 	ppvBits.Len = width * height
 	ppvBits.Cap = ppvBits.Len
 	data := *((*[]uint32)(unsafe.Pointer(&ppvBits)))
