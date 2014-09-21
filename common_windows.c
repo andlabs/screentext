@@ -8,14 +8,15 @@ char *tostr(WCHAR *wstr)
 	int n;
 
 	// alas WC_ERR_INVALID_CHARS is Vista-only
-	n = WideCharToMultiByte(CP_UTF8, WC_NO_BEST_FIT_CHARS, wstr, -1, NULL, 0, NULL, NULL);
+	// and WC_NO_BEST_FIT_CHARS is unsupported with CP_UTF8
+	n = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
 	if (n == 0)
 		xpanic("error getting buffer size in tostr()", GetLastError());
 	// n includes the null terminator
 	buf = (char *) malloc(n * sizeof (char));
 	if (buf == NULL)		// TODO errno
 		xpanic("error allocating buffer in tostr()", GetLastError());
-	if (WideCharToMultiByte(CP_UTF8, WC_NO_BEST_FIT_CHARS, wstr, -1, buf, n, NULL, NULL) == 0)
+	if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, buf, n, NULL, NULL) == 0)
 		xpanic("error converting wide string to string in tostr()", GetLastError());
 	return buf;
 }
