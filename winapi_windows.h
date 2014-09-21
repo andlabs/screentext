@@ -35,6 +35,7 @@ extern void imageClose(struct image *);
 extern void line(struct image *, int, int, int, int, HPEN, uint8_t);
 extern void strokeText(struct image *, char *, int, int, HFONT, HPEN, uint8_t);
 extern void fillText(struct image *, char *, int, int, HFONT, HBRUSH, uint8_t);
+extern SIZE textSize(struct image *, char *, HFONT);
 
 // pen_windows.c
 // the following struct is needed because there is no ExtCreatePenIndirect() :(

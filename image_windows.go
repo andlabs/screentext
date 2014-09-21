@@ -73,6 +73,17 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	}
 }
 
+func (i *imagetype) TextSize(str string, f Font) (int, int) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	font := f.get()
+	cstr := C.CString(str)
+	defer freestr(cstr)
+	size := C.textSize(i.i, cstr, font)
+	return int(size.cx), int(size.cy)
+}
+
 // TODO merge with the cairo implementation
 func (i *imagetype) Image() (img *image.RGBA) {
 	i.lock.Lock()

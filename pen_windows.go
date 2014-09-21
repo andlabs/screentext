@@ -5,6 +5,8 @@ package ndraw
 // #include "winapi_windows.h"
 import "C"
 
+// TODO un-premultiply the alpha here and in Brush (or do it in imageInternalBlend())
+
 type sysPen interface {
 	get() (C.HPEN, C.uint8_t)
 }

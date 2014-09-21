@@ -175,3 +175,18 @@ void fillText(struct image *i, char *str, int x, int y, HFONT font, HBRUSH brush
 	imageClose(ti);
 	free(wstr);
 }
+
+SIZE textSize(struct image *i, char *str, HFONT font)
+{
+	WCHAR *wstr;
+	SIZE size;
+	HFONT prevFont;
+
+	wstr = towstr(str);
+	prevFont = fontSelectInto(font, i->dc);
+	if (GetTextExtentPoint32W(i->dc, wstr, wcslen(wstr), &size) == 0)
+		xpanic("error getting text size", GetLastError());
+	fontUnselect(font, i->dc, prevFont);
+	free(wstr);
+	return size;
+}
