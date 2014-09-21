@@ -42,6 +42,10 @@ func newImage(width int, height int) Image {
 		// TODO get error reason
 		panic("error creating CGContextRef in NewImage()")
 	}
+	// now we want the context's origin to be the upper-left
+	// see https://wiki.mozilla.org/NPAPI:CoreGraphicsDrawing
+	C.CGContextTranslateCTM(i.context, 0.0, C.CGFloat(height))
+	C.CGContextScaleCTM(i.context, 1.0, -1.0)
 	return i
 }
 
