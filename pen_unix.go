@@ -24,16 +24,17 @@ type pen struct {
 	interval		uint
 }
 
-func tocairorgb(r uint8, g uint8, b uint8) (C.double, C.double, C.double) {
+func tocairorgba(r uint8, g uint8, b uint8, a uint8) (C.double, C.double, C.double, C.double) {
 	xr := C.double(r) / 255
 	xg := C.double(g) / 255
 	xb := C.double(b) / 255
-	return xr, xg, xb
+	xa := C.double(a) / 255
+	return xr, xg, xb, xa
 }
 
 func newPen(spec PenSpec) Pen {
 	p := new(pen)
-	p.pattern = C.cairo_pattern_create_rgb(tocairorgb(spec.R, spec.G, spec.B))
+	p.pattern = C.cairo_pattern_create_rgba(tocairorgba(spec.R, spec.G, spec.B, spec.A))
 	if status := C.cairo_pattern_status(p.pattern); status != C.CAIRO_STATUS_SUCCESS {
 		panic(fmt.Errorf("error creating cairo pattern for RGB [%d %d %d]: %v", spec.R, spec.G, spec.B, cairoerr(status)))
 	}

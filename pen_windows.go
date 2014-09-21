@@ -25,7 +25,7 @@ func newPen(spec PenSpec) Pen {
 	xp.style = C.PS_GEOMETRIC | lineTypes[spec.Line]
 	xp.width = C.DWORD(spec.Thickness)
 	xp.brush.lbStyle = C.BS_SOLID
-	p.alpha = 0xFF		// TODO
+	p.alpha = C.uint8_t(spec.A)
 	xp.brush.lbColor = colorref(spec.R, spec.G, spec.B)
 	xp.nSegments = 0
 	p.p = C.newPen(&xp)

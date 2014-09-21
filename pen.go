@@ -14,9 +14,10 @@ type Pen interface {
 
 // PenSpec represents the properties of a Pen.
 type PenSpec struct {
-	R			uint8	// color
+	R			uint8	// color; alpha-premultiplied
 	G			uint8
 	B			uint8
+	A			uint8
 	Thickness		uint		// in pixels
 	Line			Line
 }

@@ -33,6 +33,7 @@ func myMain() {
 		R:			0,
 		G:			128,
 		B:			0,
+		A:			0xFF,
 		Line:			Solid,
 		Thickness:	1,
 	})
@@ -47,6 +48,7 @@ func myMain() {
 		R:			255,
 		G:			0,
 		B:			0,
+		A:			128,
 		Line:			Solid,
 		Thickness:	3,
 	})

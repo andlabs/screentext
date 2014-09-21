@@ -28,7 +28,7 @@ func toquartzrgba(r uint8, g uint8, b uint8, a uint8) (C.CGFloat, C.CGFloat, C.C
 
 func newPen(spec PenSpec) Pen {
 	p := new(pen)
-	p.color = C.CGColorCreateGenericRGB(toquartzrgba(spec.R, spec.G, spec.B, 0xFF))
+	p.color = C.CGColorCreateGenericRGB(toquartzrgba(spec.R, spec.G, spec.B, spec.A))
 	// TODO check nil return?
 	p.width = C.CGFloat(spec.Thickness)
 	// TODO line dashing
