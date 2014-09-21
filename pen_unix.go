@@ -24,6 +24,7 @@ type pen struct {
 	interval		uint
 }
 
+// TODO split into common_unix.go
 func tocairorgba(r uint8, g uint8, b uint8, a uint8) (C.double, C.double, C.double, C.double) {
 	xr := C.double(r) / 255
 	xg := C.double(g) / 255
@@ -36,7 +37,7 @@ func newPen(spec PenSpec) Pen {
 	p := new(pen)
 	p.pattern = C.cairo_pattern_create_rgba(tocairorgba(spec.R, spec.G, spec.B, spec.A))
 	if status := C.cairo_pattern_status(p.pattern); status != C.CAIRO_STATUS_SUCCESS {
-		panic(fmt.Errorf("error creating cairo pattern for RGB [%d %d %d]: %v", spec.R, spec.G, spec.B, cairoerr(status)))
+		panic(fmt.Errorf("error creating cairo pattern for Pen RGBA [%d %d %d %d]: %v", spec.R, spec.G, spec.B, spec.A, cairoerr(status)))
 	}
 	p.linewidth = spec.Thickness
 	switch spec.Line {
@@ -48,7 +49,6 @@ func newPen(spec PenSpec) Pen {
 
 func (p *pen) Close() {
 	C.cairo_pattern_destroy(p.pattern)
-	p.pattern = nil			// for good measure
 }
 
 // assumes the image that owns cr is locked

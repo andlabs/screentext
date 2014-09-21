@@ -29,22 +29,20 @@ func myMain() {
 	}
 	i := NewImage(320, 240)
 	defer i.Close()
-	p := NewPen(PenSpec{
+	b := NewBrush(BrushSpec{
 		R:			0,
 		G:			128,
 		B:			0,
 		A:			0xFF,
-		Line:			Solid,
-		Thickness:	1,
 	})
 	f := NewFont(FontSpec{
 		Family:	"Helvetica",
 		Size:		12,
 		Bold:		true,
 	})
-	i.Text("hello, world", 100, 20, f, p)
-	p.Close()
-	p = NewPen(PenSpec{
+	i.Text("hello, world", 100, 20, f, nil, b)
+	b.Close()
+	p := NewPen(PenSpec{
 		R:			255,
 		G:			0,
 		B:			0,

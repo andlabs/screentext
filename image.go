@@ -15,10 +15,12 @@ type Image interface {
 	// Line draws a line from (x0,y0) to (x1,y1) with the given Pen.
 	Line(x0 int, y0 int, x1 int, y1 int, p Pen)
 
-	// Text draws the given string at the given position on the current Image in the given Pen and Font.
+	// Text draws the given string at the given position on the current Image in the given Font.
 	// The top-left corner of the drawn string will be at the given point.
+	// If the given Pen is not nil, the text is outlined using that Pen.
+	// If the given Brush is not nil, the text is filled using that Brush.
 	// TODO pango seems to do this vertically offset?
-	Text(text string, x int, y int, f Font, p Pen)
+	Text(text string, x int, y int, f Font, p Pen, b Brush)
 
 	// Image produces a copy of i as a Go image.RGBA.
 	// Note that for technical reasons, the values of the Alpha bytes of the image are undefined; you cannot reasonably blend the result of Image() with something else.
