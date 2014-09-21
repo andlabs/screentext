@@ -58,6 +58,9 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
+	if p == nil {		// nothing to draw
+		return
+	}
 	p.selectInto(i.context)
 	C.CGContextBeginPath(i.context)
 	C.CGContextMoveToPoint(i.context, C.CGFloat(x0), C.CGFloat(y0))
@@ -66,13 +69,27 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 }
 
 // TODO fills blah blah blah
-func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
+func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	p.selectInto(i.context)
+	if p == nil && b == nil {		// nothing to draw
+		return
+	}
+	mode := C.CGTextDrawingMode(0)
+	if p != nil {
+		p.selectInto(i.context)
+		mode = C.kCGTextStroke
+	}
+	if b != nil {
+		b.selectInto(i.context)
+		mode = C.kCGTextFill
+		if p != nil {
+			mode = C.kCGTextFillStroke
+		}
+	}
 	line := f.toCTLine(str)
-	C.CGContextSetTextDrawingMode(i.context, C.kCGTextStroke)
+	C.CGContextSetTextDrawingMode(i.context, mode)
 	C.CGContextSetTextPosition(i.context, C.CGFloat(x), C.CGFloat(y))
 	C.CTLineDraw(line, i.context)
 	C.CFRelease(C.CFTypeRef(unsafe.Pointer(line)))

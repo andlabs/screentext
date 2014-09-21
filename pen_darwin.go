@@ -18,6 +18,7 @@ type pen struct {
 	width	C.CGFloat
 }
 
+// TODO move to common_darwin.go
 func toquartzrgba(r uint8, g uint8, b uint8, a uint8) (C.CGFloat, C.CGFloat, C.CGFloat, C.CGFloat) {
 	xr := C.CGFloat(r) / 255
 	xg := C.CGFloat(g) / 255
