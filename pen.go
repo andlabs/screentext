@@ -5,6 +5,7 @@ package ndraw
 // Pen represents a pen.
 // Pens are used to draw lines, shape outlines, text outlines, etc.
 // A Pen is created by passing a PenSpec to NewPen().
+// As a special rule, a Pen value of nil represents a Pen that draws nothing.
 type Pen interface {
 	// Close frees resources allocated to the Pen.
 	Close()

@@ -8,6 +8,7 @@ import (
 // Brush represents a brush.
 // Brushes are used to fill shapes, text, etc.
 // A Brush is created by passing a BrushSpec to NewBrush().
+// As a special rule, a Brush value of nil represents a Brush that draws nothing.
 type Brush interface {
 	// Close frees resources allocated to the Brush.
 	Close()
