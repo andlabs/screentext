@@ -10,8 +10,51 @@ import (
 import "C"
 
 func listFonts() (fonts []FontSpec) {
-	// TODO
-	return nil
+	collection := C.CTFontCollectionCreateFromAvailableFonts(nil)
+	// TODO check for nil return?
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(collection)))		// TODO correct?
+
+	descs := C.CTFontCollectionCreateMatchingFontDescriptors(collection)
+	// TODO check for nil return?
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(descs)))		// TODO correct?
+
+	n := int(C.CFArrayGetCount(descs))
+	fonts = make([]FontSpec, n)
+	for i := 0; i < n; i++ {
+		desc := C.CTFontDescriptorRef(C.CFArrayGetValueAtIndex(descs, C.CFIndex(i)))
+		name := C.CTFontDescriptorCopyAttribute(desc, C.kCTFontFamilyNameAttribute)
+		if name != nil {
+			namestr := C.CFStringRef(unsafe.Pointer(name))
+			family := C.CFStringGetCStringPtr(namestr, C.kCFStringEncodingUTF8)
+			if family == nil {
+				panic("CFStringGetCStringPtr() failed; TODO implement the long way")
+			}
+			fonts[i].Family = C.GoString(family)
+			C.CFRelease(name)
+		}
+		traits := C.CTFontDescriptorCopyAttribute(desc, C.kCTFontTraitsAttribute)
+		if traits != nil {
+			traitsd := C.CFDictionaryRef(unsafe.Pointer(traits))
+			traitsnum := C.CFNumberRef(C.CFDictionaryGetValue(traitsd, unsafe.Pointer(C.kCTFontSymbolicTrait)))
+			if traitsnum != nil {
+				// CTFontSymbolicTraits is uint32_t
+				var traitsv uint32
+
+				if C.CFNumberGetValue(traitsnum, C.kCFNumberSInt32Type, unsafe.Pointer(&traitsv)) != C.true {
+					// TODO get error reason
+					panic("error extracting traits value from CFNumber in ListFonts()")
+				}
+				fonts[i].Bold = (traitsv & C.kCTFontBoldTrait) != 0
+				fonts[i].Italic = (traitsv & C.kCTFontItalicTrait) != 0
+				fonts[i].Monospace = (traitsv & C.kCTFontMonoSpaceTrait) != 0
+				fonts[i].Vertical = (traitsv & C.kCTFontVerticalTrait) != 0
+				// do not release; Get rule
+			}
+			C.CFRelease(traits)
+		}
+	}
+
+	return fonts
 }
 
 type sysFont interface {
