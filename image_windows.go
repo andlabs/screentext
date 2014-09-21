@@ -45,20 +45,32 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
+	if p == nil {		// nothing to draw
+		return
+	}
 	pen, alpha := p.get()
 	C.line(i.i, C.int(x0), C.int(y0), C.int(x1), C.int(y1), pen, alpha)
 }
 
 // TODO this only supports a single line of text
-func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
+func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
+	if p == nil && b == nil {		// nothing to draw
+		return
+	}
 	font := f.get()
-	pen, alpha := p.get()
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	C.drawText(i.i, cstr, C.int(x), C.int(y), font, pen, alpha)
+	if p != nil {
+		pen, alpha := p.get()
+		C.strokeText(i.i, cstr, C.int(x), C.int(y), font, pen, alpha)
+	}
+	if b != nil {
+		brush, alpha := b.get()
+		C.fillText(i.i, cstr, C.int(x), C.int(y), font, brush, alpha)
+	}
 }
 
 // TODO merge with the cairo implementation

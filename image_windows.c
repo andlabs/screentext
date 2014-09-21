@@ -119,8 +119,7 @@ void line(struct image *i, int x0, int y0, int x1, int y1, HPEN pen, uint8_t alp
 	imageClose(li);
 }
 
-// TODO replace with a brush and FillPath()
-void drawText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, uint8_t alpha)
+void strokeText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, uint8_t alpha)
 {
 	WCHAR *wstr;
 	struct image *ti;
@@ -145,5 +144,34 @@ void drawText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, ui
 	penUnselect(pen, ti->dc, prevPen);
 	fontUnselect(font, ti->dc, prevFont);
 	imageClose(ti);
-	free(str);
+	free(wstr);
+}
+
+// TODO merge with strokeText()
+void fillText(struct image *i, char *str, int x, int y, HFONT font, HBRUSH brush, uint8_t alpha)
+{
+	WCHAR *wstr;
+	struct image *ti;
+	HPEN prevBrush;
+	HFONT prevFont;
+
+	wstr = towstr(str);
+	ti = newImage(i->width, i->height, TRUE);
+	prevFont = fontSelectInto(font, ti->dc);
+	prevBrush = brushSelectInto(brush, ti->dc);
+	if (BeginPath(ti->dc) == 0)
+		xpanic("error beginning text drawing path", GetLastError());
+	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
+		xpanic("error setting text drawing to have nonopaque background", GetLastError());
+	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
+		xpanic("error drawing text path", GetLastError());
+	if (EndPath(ti->dc) == 0)
+		xpanic("error ending text drawing path", GetLastError());
+	if (FillPath(ti->dc) == 0)
+		xpanic("error filling text drawing path", GetLastError());
+	imageInternalBlend(i, ti, alpha);
+	brushUnselect(brush, ti->dc, prevBrush);
+	fontUnselect(font, ti->dc, prevFont);
+	imageClose(ti);
+	free(wstr);
 }

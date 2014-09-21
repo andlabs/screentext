@@ -24,6 +24,6 @@ type BrushSpec struct {
 }
 
 // NewBrush creates a Brush from the given BrushSpec.
-func NewBrush(spec BrushSpec) Pen {
+func NewBrush(spec BrushSpec) Brush {
 	return newBrush(spec)
 }

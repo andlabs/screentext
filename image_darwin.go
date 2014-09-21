@@ -68,7 +68,7 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 	C.CGContextStrokePath(i.context)
 }
 
-// TODO fills blah blah blah
+// TODO other ports should also be fill, then stroke
 func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	i.lock.Lock()
 	defer i.lock.Unlock()

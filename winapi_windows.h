@@ -33,8 +33,8 @@ struct image {
 extern struct image *newImage(int, int, BOOL);
 extern void imageClose(struct image *);
 extern void line(struct image *, int, int, int, int, HPEN, uint8_t);
-extern void drawText(struct image *, char *, int, int, HFONT, HPEN, uint8_t);
-
+extern void strokeText(struct image *, char *, int, int, HFONT, HPEN, uint8_t);
+extern void fillText(struct image *, char *, int, int, HFONT, HBRUSH, uint8_t);
 
 // pen_windows.c
 // the following struct is needed because there is no ExtCreatePenIndirect() :(
@@ -61,5 +61,11 @@ extern void fontUnselect(HFONT, HDC, HFONT);
 extern char *tostr(WCHAR *);
 extern WCHAR *towstr(char *);
 extern COLORREF colorref(uint8_t, uint8_t, uint8_t);
+
+// brush_windows.c
+extern HBRUSH newBrush(LOGBRUSH *);
+extern void brushClose(HBRUSH);
+extern HBRUSH brushSelectInto(HBRUSH, HDC);
+extern void brushUnselect(HBRUSH, HDC, HBRUSH);
 
 #endif
