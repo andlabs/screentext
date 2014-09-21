@@ -18,7 +18,7 @@ type pen struct {
 	width	C.CGFloat
 }
 
-func toquartzrgba(r uint8, g uint8, b uint8, a uint8) (C.double, C.double, C.double, C.double) {
+func toquartzrgba(r uint8, g uint8, b uint8, a uint8) (C.CGFloat, C.CGFloat, C.CGFloat, C.CGFloat) {
 	xr := C.CGFloat(r) / 255
 	xg := C.CGFloat(g) / 255
 	xb := C.CGFloat(b) / 255
@@ -39,7 +39,7 @@ func (p *pen) Close() {
 	C.CGColorRelease(p.color)
 }
 
-func (p *pen) selectInto(context *C.CGContextRef) {
+func (p *pen) selectInto(context C.CGContextRef) {
 	C.CGContextSetStrokeColorWithColor(context, p.color)
 	C.CGContextSetLineWidth(context, p.width)
 }

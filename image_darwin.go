@@ -3,6 +3,7 @@
 package ndraw
 
 import (
+	"sync"
 	"image"
 	"reflect"
 	"unsafe"
@@ -20,6 +21,7 @@ type sysImage interface {
 }
 
 type imagetype struct {
+	lock			sync.Mutex
 	context		C.CGContextRef
 	colorspace	C.CGColorSpaceRef
 }
@@ -69,7 +71,7 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen) {
 	C.CGContextSetTextDrawingMode(i.context, C.kCGTextStroke)
 	C.CGContextSetTextPosition(i.context, C.CGFloat(x), C.CGFloat(y))
 	C.CTLineDraw(line, i.context)
-	C.CFRelease(line)
+	C.CFRelease(C.CFTypeRef(unsafe.Pointer(line)))
 }
 
 func (i *imagetype) Image() (img *image.RGBA) {
@@ -86,7 +88,7 @@ func (i *imagetype) Image() (img *image.RGBA) {
 	srcs.Len = int(stride * height)
 	srcs.Cap = srcs.Len
 	src := *((*[]uint8)(unsafe.Pointer(&srcs)))
-	img = image.NewRGBA(image.NewRect(0, 0, int(C.CGBitmapContextGetWidth(i.context)), int(height))
+	img = image.NewRGBA(image.Rect(0, 0, int(C.CGBitmapContextGetWidth(i.context)), int(height)))
 	p := 0
 	q := 0
 	for y := 0; y < int(height); y++ {

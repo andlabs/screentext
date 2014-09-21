@@ -32,17 +32,11 @@ func newFont(spec FontSpec) Font {
 		// TODO get error reason
 		panic("error creating CFString for NewFont() family name")
 	}
-	defer C.CFRelease(familyref)
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(familyref)))
 
-	// TODO other fields
-
-	desc := C.CTFontDescriptorCreateWithAttributes(attrs)
+	basefont := C.CTFontCreateWithName(familyref, C.CGFloat(spec.Size), nil)
 	// TODO check for nil?
-	defer C.CFRelease(desc)		// TODO correct?
-
-	basefont := C.CTFontCreateWithName(desc, C.CGFloat(spec.Size), nil)
-	// TODO check for nil?
-	defer C.CFRelease(basefont)	// TODO correct?
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(basefont)))	// TODO correct?
 
 	traits := C.CTFontSymbolicTraits(0)
 	if spec.Bold {
@@ -73,7 +67,7 @@ func newFont(spec FontSpec) Font {
 
 func (f *font) Close() {
 	// TODO is this correct?
-	C.CFRelease(f.f)
+	C.CFRelease(C.CFTypeRef(unsafe.Pointer(f.f)))
 }
 
 func (f *font) toCTLine(text string) C.CTLineRef {
@@ -85,14 +79,14 @@ func (f *font) toCTLine(text string) C.CTLineRef {
 		// TODO get error reason
 		panic("error creating CFString for drawing text")
 	}
-	defer C.CFRelease(strref)
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(strref)))
 
 	attrs := C.CFDictionaryCreateMutable(nil, 1, &C.kCFTypeDictionaryKeyCallBacks, &C.kCFTypeDictionaryValueCallBacks)
 	if attrs == nil {
 		// TODO get error reason
 		panic("error creating text attribute list for drawing text")
 	}
-	defer C.CFRelease(attrs)
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(attrs)))
 	C.CFDictionaryAddValue(attrs, unsafe.Pointer(C.kCTFontAttributeName), unsafe.Pointer(f.f))
 
 	attrstr := C.CFAttributedStringCreate(nil, strref, attrs)
@@ -100,7 +94,7 @@ func (f *font) toCTLine(text string) C.CTLineRef {
 		// TODO get error reason
 		panic("error creating attributed string for drawing text")
 	}
-	defer C.CFRelease(attstr)
+	defer C.CFRelease(C.CFTypeRef(unsafe.Pointer(attrstr)))
 
 	line := C.CTLineCreateWithAttributedString(attrstr)
 	if line == nil {
