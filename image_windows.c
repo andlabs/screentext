@@ -80,17 +80,12 @@ static void imageInternalBlend(struct image *dest, struct image *src, uint8_t al
 				*sp++ = 0;
 				*sp++ = 0;
 				*sp++ = 0;
-			} else {					// written by GDI; premultiply and set alpha
-				// premultiplication steps from http://msdn.microsoft.com/en-us/library/dd183393%28v=vs.85%29.aspx
-				// TODO needed?
-				*sp = (*sp * alpha) / 0xFF;		// R
+			} else {					// written by GDI; set alpha
+				// color is premultiplied already (required by package spec)
 				sp++;
-				*sp = (*sp * alpha) / 0xFF;		// G
 				sp++;
-				*sp = (*sp * alpha) / 0xFF;		// B
 				sp++;
-				*sp = alpha;					// A
-				sp++;
+				*sp++ = alpha;
 			}
 	// and now blend
 	ZeroMemory(&bf, sizeof (BLENDFUNCTION));
