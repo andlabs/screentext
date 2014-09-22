@@ -43,7 +43,7 @@ func myMain() {
 	i.Text("hello, world", 100, 20, f, nil, b)
 	b.Close()
 	p := NewPen(PenSpec{
-		R:			255,
+		R:			128,//255, - TODO GDI AlphaBlend() actually produces gray for this invalid combination while cairo and Quartz do not (!!!)
 		G:			0,
 		B:			0,
 		A:			128,

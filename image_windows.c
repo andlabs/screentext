@@ -57,6 +57,56 @@ void imageClose(struct image *i)
 	free(i);
 }
 
+/*
+convolution matrix:
+1/5 *	[0 1 0
+		 1 1 1
+		 0 1 0]
+via xxxx
+*/
+
+static int convolve1(uint8_t *sp, int x, int y, int width, int height, int *r, int *g, int *b, int *a, int n)
+{
+	// extend border
+	if (x < 0)
+		x = 0;
+	if (x >= width)
+		x = width - 1;
+	if (y < 0)
+		y = 0;
+	if (y >= height)
+		y = height - 1;
+	sp += (y * width * 4) + (x * 4);
+	*b += *sp++ * n;
+	*g += *sp++ * n;
+	*r += *sp++ * n;
+	*a += *sp++ * n;
+	return n;
+}
+
+static void convolve(uint8_t *sp, int x, int y, int width, int height)
+{
+	int r = 0, g = 0, b = 0, a = 0;
+	int n = 0;
+
+	n += convolve1(sp, x - 1, y - 1 , width, height, &r, &g, &b, &a, 1);
+	n += convolve1(sp, x, y - 1, width, height, &r, &g, &b, &a, 2);
+	n += convolve1(sp, x + 1, y - 1, width, height, &r, &g, &b, &a, 1);
+	n += convolve1(sp, x - 1, y, width, height, &r, &g, &b, &a, 2);
+	n += convolve1(sp, x, y, width, height, &r, &g, &b, &a, 4);
+	n += convolve1(sp, x + 1, y, width, height, &r, &g, &b, &a, 2);
+	n += convolve1(sp, x - 1, y + 1, width, height, &r, &g, &b, &a, 1);
+	n += convolve1(sp, x, y + 1, width, height, &r, &g, &b, &a, 2);
+	n += convolve1(sp, x + 1, y + 1, width, height, &r, &g, &b, &a, 1);
+	if (n == 0)
+		n = 1;
+	sp += (y * width * 4) + (x * 4);
+	*sp++ = b / n;
+	*sp++ = g / n;
+	*sp++ = r / n;
+	*sp++ = a / n;
+}
+
 // GDI doesn't natively support alpha blending outside of AlphaBlend(), but there's a trick: GDI sets the alpha byte of any written pixel to 0x00
 // this means we can manually patch in alpha values
 // this is important since we must also premultiply
@@ -87,6 +137,11 @@ static void imageInternalBlend(struct image *dest, struct image *src, uint8_t al
 				sp++;
 				*sp++ = alpha;
 			}
+	// antialias
+	sp = (uint8_t *) src->ppvBits;
+	for (y = 0; y < src->height; y++)
+		for (x = 0; x < src->width; x++)
+			convolve(sp, x, y, src->width, src->height);
 	// and now blend
 	ZeroMemory(&bf, sizeof (BLENDFUNCTION));
 	bf.BlendOp = AC_SRC_OVER;
