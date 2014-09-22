@@ -95,6 +95,16 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	C.CFRelease(C.CFTypeRef(unsafe.Pointer(line)))
 }
 
+func (i *imagetype) TextSize(str string, f Font) (int, int) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	line := f.toCTLine(str)
+	bounds := C.CTLineGetImageBounds(line, i.context)
+	C.CFRelease(C.CFTypeRef(unsafe.Pointer(line)))
+	return int(bounds.size.width), int(bounds.size.height)
+}
+
 func (i *imagetype) Image() (img *image.RGBA) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
