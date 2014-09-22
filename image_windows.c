@@ -82,6 +82,7 @@ static void imageInternalBlend(struct image *dest, struct image *src, uint8_t al
 				*sp++ = 0;
 			} else {					// written by GDI; premultiply and set alpha
 				// premultiplication steps from http://msdn.microsoft.com/en-us/library/dd183393%28v=vs.85%29.aspx
+				// TODO needed?
 				*sp = (*sp * alpha) / 0xFF;		// R
 				sp++;
 				*sp = (*sp * alpha) / 0xFF;		// G
