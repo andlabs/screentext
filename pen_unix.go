@@ -14,6 +14,7 @@ import "C"
 // cairo doesn't have solid pen objects; instead we set the various parameters individually
 type sysPen interface {
 	selectInto(*C.cairo_t)
+	thickness() uint
 }
 
 type pen struct {
@@ -68,4 +69,8 @@ func (p *pen) selectInto(cr *C.cairo_t) {
 // assumes the image that owns cr is locked
 func deselectPen(cr *C.cairo_t) {
 	C.cairo_set_source_rgb(cr, 0, 0, 0)
+}
+
+func (p *pen) thickness() uint {
+	return p.linewidth
 }

@@ -63,9 +63,10 @@ func (i *imagetype) Line(x0 int, y0 int, x1 int, y1 int, p Pen) {
 		return
 	}
 	p.selectInto(i.cr)
+	fx0, fy0, fx1, fy1 := subpixelAdjust(x0, y0, x1, y1, p.thickness(), 1)
 	C.cairo_new_path(i.cr)
-	C.cairo_move_to(i.cr, C.double(x0), C.double(y0))
-	C.cairo_line_to(i.cr, C.double(x1), C.double(y1))
+	C.cairo_move_to(i.cr, C.double(fx0), C.double(fy0))
+	C.cairo_line_to(i.cr, C.double(fx1), C.double(fy1))
 	C.cairo_stroke(i.cr)
 	deselectPen(i.cr)
 }
@@ -82,6 +83,7 @@ func (i *imagetype) Text(str string, x int, y int, f Font, p Pen, b Brush) {
 	cstr := C.CString(str)
 	C.cairo_save(i.cr)
 	C.cairo_new_path(i.cr)
+	// TODO subpixelAdjust()?
 	C.cairo_move_to(i.cr, C.double(x), C.double(y))
 	C.pango_layout_set_text(pl, cstr, -1)
 	C.pango_cairo_layout_path(i.cr, pl)
