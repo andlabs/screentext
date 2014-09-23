@@ -74,7 +74,7 @@ func myMain() {
 	})
 	i.Line(100, 20 + ht, 100 + wid, 20 + ht, p)
 	i.Line(100 + wid, 20, 100 + wid, 20 + ht, p)
-	i.Line(30, 200, 50, 240, p)
+	i.Line(30, 200, 70, 240, p)
 	p.Close()
 	f.Close()
 	ui.Do(func() {
