@@ -141,7 +141,7 @@ static void imageInternalBlend(struct image *dest, struct image *src, uint8_t al
 	sp = (uint8_t *) src->ppvBits;
 	for (y = 0; y < src->height; y++)
 		for (x = 0; x < src->width; x++)
-			convolve(sp, x, y, src->width, src->height);
+;//			convolve(sp, x, y, src->width, src->height);
 	// and now blend
 	ZeroMemory(&bf, sizeof (BLENDFUNCTION));
 	bf.BlendOp = AC_SRC_OVER;
