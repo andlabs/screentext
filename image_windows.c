@@ -25,9 +25,8 @@ struct image *newImage(int dx, int dy, BOOL internal)
 	i->bitmap = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, &i->ppvBits, NULL, 0);
 	if (i->bitmap == NULL)
 		xpanic("error creating image in newImage()", GetLastError());
-	if (internal)
-		// see imageInternalBlend() below for details
-		memset(i->ppvBits, 0xFF, dx * dy * 4);
+	// see Image() in image_windows.go for details
+	memset(i->ppvBits, 0xFF, dx * dy * 4);
 
 	screen = GetDC(NULL);
 	if (screen == NULL)
@@ -57,187 +56,53 @@ void imageClose(struct image *i)
 	free(i);
 }
 
-/*
-convolution matrix:
-1/16 *	[1 2 1
-		 2 4 2
-		 1 2 1]
-via http://www.cs.utexas.edu/~bajaj/graphics2012/cs354/lectures/lect21.pdf
-*/
-
-static int convolve1(uint8_t *sp, int x, int y, int width, int height, int *r, int *g, int *b, int *a, int n)
+static SIZE wtextSize(WCHAR *wstr, HFONT font)
 {
-	// extend border
-	if (x < 0)
-		x = 0;
-	if (x >= width)
-		x = width - 1;
-	if (y < 0)
-		y = 0;
-	if (y >= height)
-		y = height - 1;
-	sp += (y * width * 4) + (x * 4);
-	*b += *sp++ * n;
-	*g += *sp++ * n;
-	*r += *sp++ * n;
-	*a += *sp++ * n;
-	return n;
-}
-
-static void convolve(uint8_t *sp, int x, int y, int width, int height)
-{
-	int r = 0, g = 0, b = 0, a = 0;
-	int n = 0;
-
-	n += convolve1(sp, x - 1, y - 1 , width, height, &r, &g, &b, &a, 1);
-	n += convolve1(sp, x, y - 1, width, height, &r, &g, &b, &a, 2);
-	n += convolve1(sp, x + 1, y - 1, width, height, &r, &g, &b, &a, 1);
-	n += convolve1(sp, x - 1, y, width, height, &r, &g, &b, &a, 2);
-	n += convolve1(sp, x, y, width, height, &r, &g, &b, &a, 4);
-	n += convolve1(sp, x + 1, y, width, height, &r, &g, &b, &a, 2);
-	n += convolve1(sp, x - 1, y + 1, width, height, &r, &g, &b, &a, 1);
-	n += convolve1(sp, x, y + 1, width, height, &r, &g, &b, &a, 2);
-	n += convolve1(sp, x + 1, y + 1, width, height, &r, &g, &b, &a, 1);
-	if (n == 0)
-		n = 1;
-	sp += (y * width * 4) + (x * 4);
-	*sp++ = b / n;
-	*sp++ = g / n;
-	*sp++ = r / n;
-	*sp++ = a / n;
-}
-
-// GDI doesn't natively support alpha blending outside of AlphaBlend(), but there's a trick: GDI sets the alpha byte of any written pixel to 0x00
-// this means we can manually patch in alpha values
-// this is important since we must also premultiply
-// so what we do is: all drawing operations actually draw to an internal bitmap that's set to all 0xFF (see internal in newImage() above) and then we patch in the alpha ourselves here before calling AlphaBlend()
-// in the end, the only function that should ever be called to a non-internal image is AlphaBlend()
-static void imageInternalBlend(struct image *dest, struct image *src, uint8_t alpha)
-{
-	uint8_t *sp;
-	int x, y;
-	BLENDFUNCTION bf;
-
-	// first make sure GDI has written everything
-	// TODO this is per-thread...
-	if (GdiFlush() == 0)
-		xpanic("error flushing GDI buffers", GetLastError());
-	sp = (uint8_t *) src->ppvBits;
-	for (y = 0; y < src->height; y++)
-		for (x = 0; x < src->width; x++)
-			if (*(sp + 3) == 0xFF) {		// not written by GDI; make transparent
-				*sp++ = 0;
-				*sp++ = 0;
-				*sp++ = 0;
-				*sp++ = 0;
-			} else {					// written by GDI; set alpha
-				// color is premultiplied already (required by package spec)
-				sp++;
-				sp++;
-				sp++;
-				*sp++ = alpha;
-			}
-	// antialias
-	sp = (uint8_t *) src->ppvBits;
-	for (y = 0; y < src->height; y++)
-		for (x = 0; x < src->width; x++)
-;//			convolve(sp, x, y, src->width, src->height);
-	// and now blend
-	ZeroMemory(&bf, sizeof (BLENDFUNCTION));
-	bf.BlendOp = AC_SRC_OVER;
-	bf.BlendFlags = 0;
-	bf.SourceConstantAlpha = 255;		// per-pixel alpha
-	bf.AlphaFormat = AC_SRC_ALPHA;
-	if (AlphaBlend(dest->dc, 0, 0, dest->width, dest->height,
-		src->dc, 0, 0, src->width, src->height,
-		bf) == FALSE)
-		xpanic("error doing internal alpha-blending of image draw", GetLastError());
-}
-
-void line(struct image *i, int x0, int y0, int x1, int y1, HPEN pen, uint8_t alpha)
-{
-	struct image *li;
-	HPEN prev;
-
-	li = newImage(i->width, i->height, TRUE);
-	prev = penSelectInto(pen, li->dc);
-	if (MoveToEx(li->dc, x0, y0, NULL) == 0)
-		xpanic("error moving to point", GetLastError());
-	if (LineTo(li->dc, x1, y1) == 0)
-		xpanic("error drawing line to point", GetLastError());
-	imageInternalBlend(i, li, alpha);
-	penUnselect(pen, li->dc, prev);
-	imageClose(li);
-}
-
-void strokeText(struct image *i, char *str, int x, int y, HFONT font, HPEN pen, uint8_t alpha)
-{
-	WCHAR *wstr;
-	struct image *ti;
-	HPEN prevPen;
-	HFONT prevFont;
-
-	wstr = towstr(str);
-	ti = newImage(i->width, i->height, TRUE);
-	prevFont = fontSelectInto(font, ti->dc);
-	prevPen = penSelectInto(pen, ti->dc);
-	if (BeginPath(ti->dc) == 0)
-		xpanic("error beginning text drawing path", GetLastError());
-	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
-		xpanic("error setting text drawing to have nonopaque background", GetLastError());
-	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
-		xpanic("error drawing text path", GetLastError());
-	if (EndPath(ti->dc) == 0)
-		xpanic("error ending text drawing path", GetLastError());
-	if (StrokePath(ti->dc) == 0)
-		xpanic("error stroking text drawing path", GetLastError());
-	imageInternalBlend(i, ti, alpha);
-	penUnselect(pen, ti->dc, prevPen);
-	fontUnselect(font, ti->dc, prevFont);
-	imageClose(ti);
-	free(wstr);
-}
-
-// TODO merge with strokeText()
-void fillText(struct image *i, char *str, int x, int y, HFONT font, HBRUSH brush, uint8_t alpha)
-{
-	WCHAR *wstr;
-	struct image *ti;
-	HPEN prevBrush;
-	HFONT prevFont;
-
-	wstr = towstr(str);
-	ti = newImage(i->width, i->height, TRUE);
-	prevFont = fontSelectInto(font, ti->dc);
-	prevBrush = brushSelectInto(brush, ti->dc);
-	if (BeginPath(ti->dc) == 0)
-		xpanic("error beginning text drawing path", GetLastError());
-	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
-		xpanic("error setting text drawing to have nonopaque background", GetLastError());
-	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
-		xpanic("error drawing text path", GetLastError());
-	if (EndPath(ti->dc) == 0)
-		xpanic("error ending text drawing path", GetLastError());
-	if (FillPath(ti->dc) == 0)
-		xpanic("error filling text drawing path", GetLastError());
-	imageInternalBlend(i, ti, alpha);
-	brushUnselect(brush, ti->dc, prevBrush);
-	fontUnselect(font, ti->dc, prevFont);
-	imageClose(ti);
-	free(wstr);
-}
-
-SIZE textSize(struct image *i, char *str, HFONT font)
-{
+	HDC dc;
 	WCHAR *wstr;
 	SIZE size;
 	HFONT prevFont;
 
-	wstr = towstr(str);
-	prevFont = fontSelectInto(font, i->dc);
-	if (GetTextExtentPoint32W(i->dc, wstr, wcslen(wstr), &size) == 0)
+	dc = GetDC(NULL);
+	if (dc == NULL)
+		xpanic("error getting screen DC for TextSize()", GetLastError());
+	prevFont = fontSelectInto(font, dc);
+	if (GetTextExtentPoint32W(dc, wstr, wcslen(wstr), &size) == 0)
 		xpanic("error getting text size", GetLastError());
-	fontUnselect(font, i->dc, prevFont);
+	fontUnselect(font, dc, prevFont);
+	if (ReleaseDC(NULL, dc) == 0)
+		xpanic("error releasing screen DC for TextSize()", GetLastError());
+	return size;
+}
+
+struct image *drawText(char *str, int x, int y, HFONT font, uint8_t r, uint8_t g, uint8_t b)
+{
+	WCHAR *wstr;
+	SIZE size;
+	struct image *ti;
+	HFONT prevFont;
+
+	wstr = towstr(str);
+	size = wtextSize(wstr, font);
+	ti = newImage(size.cx, size.cy, TRUE);
+	prevFont = fontSelectInto(font, ti->dc);
+	if (SetTextColor(ti->dc, COLORREF(r, g, b)) == CLR_INVALID)
+		xpanic("error setting text color", GetLastError());
+	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
+		xpanic("error setting text drawing to have nonopaque background", GetLastError());
+	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
+		xpanic("error drawing text path", GetLastError());
+	fontUnselect(font, ti->dc, prevFont);
+	free(wstr);
+	return ti;
+}
+
+SIZE textSize(char *str, HFONT font, WCHAR *w)
+{
+	SIZE size;
+
+	wstr = towstr(str);
+	size = wtextSize(wstr, font);
 	free(wstr);
 	return size;
 }

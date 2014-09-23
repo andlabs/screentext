@@ -12,16 +12,13 @@ type Image interface {
 	// Close cleans up all resources and renders the image invalid.
 	Close()
 
-	// Line draws a line from (x0,y0) to (x1,y1) with the given Pen.
-	Line(x0 int, y0 int, x1 int, y1 int, p Pen)
-
 	// Text draws the given string at the given position on the current Image in the given Font.
 	// The top-left corner of the drawn string will be at the given point.
 	// If the given Pen is not nil, the text is outlined using that Pen.
 	// If the given Brush is not nil, the text is filled using that Brush.
 	// If you just want to draw text "normally", specify a non-nil Brush of the desired text color and specify a nil Pen.
 	// TODO pango seems to do this vertically offset?
-	Text(text string, x int, y int, f Font, p Pen, b Brush)
+	Text(text string, x int, y int, f Font, r uint8, g uint8, b uint8)
 
 	// TextSize computes the size that the given text string would occupy in the given Font.
 	// The reported size is in pixels.

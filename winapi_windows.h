@@ -32,24 +32,8 @@ struct image {
 };
 extern struct image *newImage(int, int, BOOL);
 extern void imageClose(struct image *);
-extern void line(struct image *, int, int, int, int, HPEN, uint8_t);
-extern void strokeText(struct image *, char *, int, int, HFONT, HPEN, uint8_t);
-extern void fillText(struct image *, char *, int, int, HFONT, HBRUSH, uint8_t);
-extern SIZE textSize(struct image *, char *, HFONT);
-
-// pen_windows.c
-// the following struct is needed because there is no ExtCreatePenIndirect() :(
-struct xpen {
-	DWORD style;
-	DWORD width;
-	LOGBRUSH brush;
-	DWORD nSegments;
-	DWORD *segments;
-};
-extern HPEN newPen(struct xpen *);
-extern void penClose(HPEN);
-extern HPEN penSelectInto(HPEN, HDC);
-extern void penUnselect(HPEN, HDC, HPEN);
+extern struct image *drawText(char *, int, int, HFONT, uint8_t, uint8_t, uint8_t);
+extern SIZE textSize(char *, HFONT);
 
 // fonts_windows.c
 extern void listFonts(void *);
@@ -62,11 +46,5 @@ extern void fontUnselect(HFONT, HDC, HFONT);
 extern char *tostr(WCHAR *);
 extern WCHAR *towstr(char *);
 extern COLORREF colorref(uint8_t, uint8_t, uint8_t);
-
-// brush_windows.c
-extern HBRUSH newBrush(LOGBRUSH *);
-extern void brushClose(HBRUSH);
-extern HBRUSH brushSelectInto(HBRUSH, HDC);
-extern void brushUnselect(HBRUSH, HDC, HBRUSH);
 
 #endif
