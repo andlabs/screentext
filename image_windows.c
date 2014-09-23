@@ -59,10 +59,10 @@ void imageClose(struct image *i)
 
 /*
 convolution matrix:
-1/5 *	[0 1 0
-		 1 1 1
-		 0 1 0]
-via xxxx
+1/16 *	[1 2 1
+		 2 4 2
+		 1 2 1]
+via http://www.cs.utexas.edu/~bajaj/graphics2012/cs354/lectures/lect21.pdf
 */
 
 static int convolve1(uint8_t *sp, int x, int y, int width, int height, int *r, int *g, int *b, int *a, int n)
