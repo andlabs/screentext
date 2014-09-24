@@ -47,6 +47,7 @@ func myMain() {
 }
 
 func init() {
+	testInit()
 	go myMain()
 	err := ui.Go()
 	if err != nil {

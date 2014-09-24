@@ -16,11 +16,16 @@ import "C"
 
 var lock sync.Mutex
 
-func init() {
+// screw init() not being run in tests >:(
+func testInit() {
 	lock.Lock()
 	defer lock.Unlock()
 
 	C.init()
+}
+
+func init() {
+	testInit()
 }
 
 // TODO this only supports a single line of text
