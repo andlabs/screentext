@@ -32,7 +32,7 @@ struct image {
 };
 extern struct image *newImage(int, int, BOOL);
 extern void imageClose(struct image *);
-extern struct image *drawText(char *, int, int, HFONT, uint8_t, uint8_t, uint8_t);
+extern struct image *drawText(char *, HFONT, uint8_t, uint8_t, uint8_t);
 extern SIZE textSize(char *, HFONT);
 
 // fonts_windows.c
@@ -43,6 +43,8 @@ extern HFONT fontSelectInto(HFONT, HDC);
 extern void fontUnselect(HFONT, HDC, HFONT);
 
 // common_windows.c
+extern HDC screenDC;
+extern void init(void);
 extern char *tostr(WCHAR *);
 extern WCHAR *towstr(char *);
 extern COLORREF colorref(uint8_t, uint8_t, uint8_t);

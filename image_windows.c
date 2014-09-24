@@ -7,7 +7,6 @@ struct image *newImage(int dx, int dy, BOOL internal)
 {
 	struct image *i;
 	BITMAPINFO bi;
-	HDC screen;
 
 	i = (struct image *) malloc(sizeof (struct image));
 	if (i == NULL)		// TODO errno
@@ -28,17 +27,12 @@ struct image *newImage(int dx, int dy, BOOL internal)
 	// see Image() in image_windows.go for details
 	memset(i->ppvBits, 0xFF, dx * dy * 4);
 
-	screen = GetDC(NULL);
-	if (screen == NULL)
-		xpanic("error getting screen DC for newImage()", GetLastError());
-	i->dc = CreateCompatibleDC(screen);
+	i->dc = CreateCompatibleDC(screenDC);
 	if (i->dc == NULL)
 		xpanic("error creating memory DC for newImage()", GetLastError());
 	i->prev = (HBITMAP) SelectObject(i->dc, i->bitmap);
 	if (i->prev == NULL)
 		xpanic("error selecting bitmap into memory DC for newImage()", GetLastError());
-	if (ReleaseDC(NULL, screen) == 0)
-		xpanic("error releasing screen DC for newImage()", GetLastError());
 
 	i->width = dx;
 	i->height = dy;
@@ -75,7 +69,7 @@ static SIZE wtextSize(WCHAR *wstr, HFONT font)
 	return size;
 }
 
-struct image *drawText(char *str, int x, int y, HFONT font, uint8_t r, uint8_t g, uint8_t b)
+struct image *drawText(char *str, HFONT font, uint8_t r, uint8_t g, uint8_t b)
 {
 	WCHAR *wstr;
 	SIZE size;
@@ -90,7 +84,7 @@ struct image *drawText(char *str, int x, int y, HFONT font, uint8_t r, uint8_t g
 		xpanic("error setting text color", GetLastError());
 	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to have nonopaque background", GetLastError());
-	if (TextOutW(ti->dc, x, y, wstr, wcslen(wstr)) == 0)
+	if (TextOutW(ti->dc, 0, 0, wstr, wcslen(wstr)) == 0)
 		xpanic("error drawing text path", GetLastError());
 	fontUnselect(font, ti->dc, prevFont);
 	free(wstr);

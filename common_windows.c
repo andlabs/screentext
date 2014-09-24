@@ -2,6 +2,15 @@
 
 #include "winapi_windows.h"
 
+HDC screenDC;
+
+void init(void)
+{
+	screenDC = GetDC(NULL);
+	if (screenDC == NULL)
+		xpanic("error getting screen DC", GetLastError());
+}
+
 char *tostr(WCHAR *wstr)
 {
 	char *buf;
