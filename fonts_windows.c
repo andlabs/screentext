@@ -81,12 +81,12 @@ HFONT fontSelectInto(HFONT font, HDC dc)
 
 	prev = (HFONT) SelectObject(dc, font);
 	if (prev == NULL)
-		xpanic("error selecting Font into Image DC", GetLastError());
+		xpanic("error selecting Font into DC", GetLastError());
 	return prev;
 }
 
 void fontUnselect(HFONT font, HDC dc, HFONT prev)
 {
 	if (SelectObject(dc, prev) != font)
-		xpanic("error unselecting Font from Image DC", GetLastError());
+		xpanic("error unselecting Font from DC", GetLastError());
 }

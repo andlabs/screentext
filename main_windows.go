@@ -14,7 +14,7 @@ import (
 // #include "winapi_windows.h"
 import "C"
 
-var lock sys.Mutex
+var lock sync.Mutex
 
 func init() {
 	lock.Lock()
@@ -24,7 +24,7 @@ func init() {
 }
 
 // TODO this only supports a single line of text
-func line(str string, x int, y int, f Font, r uint8, g uint8, b uint8) {
+func line(str string, f Font, r uint8, g uint8, b uint8) *image.RGBA {
 	lock.Lock()
 	defer lock.Unlock()
 
@@ -43,21 +43,21 @@ func lineSize(str string, f Font) (int, int) {
 	font := f.get()
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	size := C.textSize(i.i, cstr, font)
+	size := C.textSize(cstr, font)
 	return int(size.cx), int(size.cy)
 }
 
 // assumes lock is held
 // TODO merge with the cairo implementation
 func toImage(i *C.struct_image) (img *image.RGBA) {
-	var p reflect.SliceHeader
+	var s reflect.SliceHeader
 
 	width := int(i.width)
 	height := int(i.height)
-	p.Data = uintptr(unsafe.Pointer(i.ppvBits))
-	p.Len = width * height
-	p.Cap = p.Len
-	data := *((*[]uint32)(unsafe.Pointer(&p)))
+	s.Data = uintptr(unsafe.Pointer(i.ppvBits))
+	s.Len = width * height
+	s.Cap = s.Len
+	data := *((*[]uint32)(unsafe.Pointer(&s)))
 	stride := width * 4
 	img = image.NewRGBA(image.Rect(0, 0, width, height))
 	p := 0

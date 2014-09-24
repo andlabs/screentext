@@ -27,25 +27,16 @@ func myMain() {
 	for _, font := range fonts {
 		fmt.Printf("%#v\n", font)
 	}
-	i := NewImage(320, 240)
-	defer i.Close()
-	b := NewBrush(BrushSpec{
-		R:			0,
-		G:			128,
-		B:			0,
-		A:			0xFF,
-	})
 	f := NewFont(FontSpec{
 		Family:	"Helvetica",
 		Size:		12,
 		Bold:		true,
 	})
-	i.Text("hello, world", 100, 20, f, nil, b)
-	b.Close()
+	i := Line("hello, world", f, 0, 128, 0)
 	f.Close()
 	ui.Do(func() {
-		w = ui.NewWindow("Test", 320, 240, ui.NewArea(320, 240, &areaHandler{
-			img:		i.Image(),
+		w = ui.NewWindow("Test", 200, 200, ui.NewArea(i.Rect.Dx(), i.Rect.Dy(), &areaHandler{
+			img:		i,
 		}))
 		w.OnClosing(func() bool {
 			ui.Stop()

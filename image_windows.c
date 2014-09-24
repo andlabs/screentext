@@ -24,7 +24,7 @@ struct image *newImage(int dx, int dy, BOOL internal)
 	i->bitmap = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, &i->ppvBits, NULL, 0);
 	if (i->bitmap == NULL)
 		xpanic("error creating image in newImage()", GetLastError());
-	// see Image() in image_windows.go for details
+	// see toImage() in image_windows.go for details
 	memset(i->ppvBits, 0xFF, dx * dy * 4);
 
 	i->dc = CreateCompatibleDC(screenDC);
@@ -42,30 +42,23 @@ struct image *newImage(int dx, int dy, BOOL internal)
 void imageClose(struct image *i)
 {
 	if (SelectObject(i->dc, i->prev) != i->bitmap)
-		xpanic("error restoring initial DC bitmap in Image.Close()", GetLastError());
+		xpanic("error restoring initial DC bitmap in imageClose()", GetLastError());
 	if (DeleteDC(i->dc) == 0)
-		xpanic("error removing image DC in Image.Close()", GetLastError());
+		xpanic("error removing image DC in imageClose()", GetLastError());
 	if (DeleteObject(i->bitmap) == 0)
-		xpanic("error removing bitmap in Image.Close()", GetLastError());
+		xpanic("error removing bitmap in imageClose()", GetLastError());
 	free(i);
 }
 
 static SIZE wtextSize(WCHAR *wstr, HFONT font)
 {
-	HDC dc;
-	WCHAR *wstr;
 	SIZE size;
 	HFONT prevFont;
 
-	dc = GetDC(NULL);
-	if (dc == NULL)
-		xpanic("error getting screen DC for TextSize()", GetLastError());
-	prevFont = fontSelectInto(font, dc);
-	if (GetTextExtentPoint32W(dc, wstr, wcslen(wstr), &size) == 0)
+	prevFont = fontSelectInto(font, screenDC);
+	if (GetTextExtentPoint32W(screenDC, wstr, wcslen(wstr), &size) == 0)
 		xpanic("error getting text size", GetLastError());
-	fontUnselect(font, dc, prevFont);
-	if (ReleaseDC(NULL, dc) == 0)
-		xpanic("error releasing screen DC for TextSize()", GetLastError());
+	fontUnselect(font, screenDC, prevFont);
 	return size;
 }
 
@@ -80,7 +73,7 @@ struct image *drawText(char *str, HFONT font, uint8_t r, uint8_t g, uint8_t b)
 	size = wtextSize(wstr, font);
 	ti = newImage(size.cx, size.cy, TRUE);
 	prevFont = fontSelectInto(font, ti->dc);
-	if (SetTextColor(ti->dc, COLORREF(r, g, b)) == CLR_INVALID)
+	if (SetTextColor(ti->dc, RGB(r, g, b)) == CLR_INVALID)
 		xpanic("error setting text color", GetLastError());
 	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to have nonopaque background", GetLastError());
@@ -91,8 +84,9 @@ struct image *drawText(char *str, HFONT font, uint8_t r, uint8_t g, uint8_t b)
 	return ti;
 }
 
-SIZE textSize(char *str, HFONT font, WCHAR *w)
+SIZE textSize(char *str, HFONT font)
 {
+	WCHAR *wstr;
 	SIZE size;
 
 	wstr = towstr(str);
