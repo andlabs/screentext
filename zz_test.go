@@ -42,40 +42,6 @@ func myMain() {
 	})
 	i.Text("hello, world", 100, 20, f, nil, b)
 	b.Close()
-	p := NewPen(PenSpec{
-		R:			128,//255, - TODO GDI AlphaBlend() actually produces gray for this invalid combination while cairo and Quartz do not (!!!)
-		G:			0,
-		B:			0,
-		A:			128,
-		Line:			Solid,
-		Thickness:	3,
-	})
-	i.Line(4, 4, 316, 236, p)
-	i.Line(100, 20, 101, 21, p)
-	p.Close()
-	p = NewPen(PenSpec{
-		R:			0,
-		G:			0,
-		B:			255,
-		A:			255,
-		Line:			Solid,
-		Thickness:	2,
-	})
-	wid, ht := i.TextSize("hello, world", f)
-	i.Line(100, 20 + ht + 10, 100 + wid, 20 + ht + 10, p)
-	i.Line(100 + wid + 10, 20, 100 + wid + 10, 20 + ht, p)
-	p = NewPen(PenSpec{
-		R:			0,
-		G:			0,
-		B:			255,
-		A:			255,
-		Line:			Solid,
-		Thickness:	1,
-	})
-	i.Line(100, 20 + ht, 100 + wid, 20 + ht, p)
-	i.Line(100 + wid, 20, 100 + wid, 20 + ht, p)
-	i.Line(30, 200, 70, 240, p)
-	p.Close()
 	f.Close()
 	ui.Do(func() {
 		w = ui.NewWindow("Test", 320, 240, ui.NewArea(320, 240, &areaHandler{
