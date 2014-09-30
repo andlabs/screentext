@@ -42,6 +42,7 @@ void listFonts(void *golist)
 	spec.lfCharSet = DEFAULT_CHARSET;		// all character sets
 	spec.lfFaceName[0] = L'\0';				// all faces
 	spec.lfPitchAndFamily = 0;
+	spec.lfQuality = ANTIALIASED_QUALITY;
 	EnumFontFamiliesExW(lfd.dc, &spec, enumFontProc, (LPARAM) (&lfd), 0);
 	if (ReleaseDC(NULL, lfd.dc) == 0)
 		xpanic("error releasing screen DC for ListFonts()", GetLastError());

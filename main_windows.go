@@ -36,9 +36,9 @@ func line(str string, f Font, r uint8, g uint8, b uint8) *image.RGBA {
 	font := f.get()
 	cstr := C.CString(str)
 	defer freestr(cstr)
-	i := C.drawText(cstr, font, C.uint8_t(r), C.uint8_t(g), C.uint8_t(b))
+	i := C.drawText(cstr, font)
 	defer C.imageClose(i)
-	return toImage(i)
+	return toImage(i, r, g, b)
 }
 
 func lineSize(str string, f Font) (int, int) {
@@ -52,9 +52,14 @@ func lineSize(str string, f Font) (int, int) {
 	return int(size.cx), int(size.cy)
 }
 
+// same premultiplication that GDI AlphaBlend() says to do; see xxx
+func premultiply(c uint8, alpha uint8) uint8 {
+	part := int(c) * int(alpha)
+	return uint8(part / 255)
+}
+
 // assumes lock is held
-// TODO merge with the cairo implementation
-func toImage(i *C.struct_image) (img *image.RGBA) {
+func toImage(i *C.struct_image, r uint8, g uint8, b uint8) (img *image.RGBA) {
 	var s reflect.SliceHeader
 
 	width := int(i.width)
@@ -71,14 +76,21 @@ func toImage(i *C.struct_image) (img *image.RGBA) {
 		nextp := p + img.Stride
 		nextq := q + (stride / 4)
 		for x := 0; x < width; x++ {
-			img.Pix[p] = uint8((data[q] >> 16) & 0xFF)		// R
-			img.Pix[p + 1] = uint8((data[q] >> 8) & 0xFF)		// G
-			img.Pix[p + 2] = uint8(data[q] & 0xFF)			// B
-			img.Pix[p + 3] = uint8((data[q] >> 24) & 0xFF)		// A
-			// img.Pix[p + 3] is either 0x00 (written by GDI) or 0xFF (not written  by GDI)
-			// (this is why we fill ppvBits with 0xFF in image_windows.c newImage())
-			// but alpha is the opposite, so we invert
-			img.Pix[p + 3] ^= 0xFF
+			// GDI doesn't natively support antialiasing text to transparent
+			// but here's a clever trick I wish I had thought of:
+			// we set the image background to white in newImage() in image_windows.c
+			// we set the text color to black in drawText() in image_windows.c
+			// this means the pixel color can be used as an alpha, with white being fully transparent and black being fully opaque
+			// (all three color components sould be equal by definition)
+			// we then manually alpha-premultiply the color
+			// full credit for this goes to xxx at xxx
+			alpha := uint8((data[q] >> 16) & 0xFF)			// use red component
+			// white is 0xFF and black is 0x00; we need the opposite
+			alpha = 255 - alpha
+			img.Pix[p] = premultiply(r, alpha)			// R
+			img.Pix[p + 1] = premultiply(g, alpha)		// G
+			img.Pix[p + 2] = premultiply(b, alpha)		// B
+			img.Pix[p + 3] = alpha					// A
 			p += 4
 			q++
 		}

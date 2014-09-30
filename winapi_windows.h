@@ -32,7 +32,7 @@ struct image {
 };
 extern struct image *newImage(int, int, BOOL);
 extern void imageClose(struct image *);
-extern struct image *drawText(char *, HFONT, uint8_t, uint8_t, uint8_t);
+extern struct image *drawText(char *, HFONT);
 extern SIZE textSize(char *, HFONT);
 
 // fonts_windows.c

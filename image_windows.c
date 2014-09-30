@@ -24,7 +24,8 @@ struct image *newImage(int dx, int dy, BOOL internal)
 	i->bitmap = CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, &i->ppvBits, NULL, 0);
 	if (i->bitmap == NULL)
 		xpanic("error creating image in newImage()", GetLastError());
-	// see toImage() in image_windows.go for details
+	// sets the background to white
+	// see toImage() in main_windows.go for details
 	memset(i->ppvBits, 0xFF, dx * dy * 4);
 
 	i->dc = CreateCompatibleDC(screenDC);
@@ -62,7 +63,7 @@ static SIZE wtextSize(WCHAR *wstr, HFONT font)
 	return size;
 }
 
-struct image *drawText(char *str, HFONT font, uint8_t r, uint8_t g, uint8_t b)
+struct image *drawText(char *str, HFONT font)
 {
 	WCHAR *wstr;
 	SIZE size;
@@ -73,14 +74,17 @@ struct image *drawText(char *str, HFONT font, uint8_t r, uint8_t g, uint8_t b)
 	size = wtextSize(wstr, font);
 	ti = newImage(size.cx, size.cy, TRUE);
 	prevFont = fontSelectInto(font, ti->dc);
-	if (SetTextColor(ti->dc, RGB(r, g, b)) == CLR_INVALID)
-		xpanic("error setting text color", GetLastError());
+	// see toImage() in main_windows.go
+	if (SetTextColor(ti->dc, RGB(0, 0, 0)) == CLR_INVALID)
+		xpanic("error giving text black color for alpha calculations", GetLastError());
 	if (SetBkMode(ti->dc, TRANSPARENT) == 0)
 		xpanic("error setting text drawing to have nonopaque background", GetLastError());
 	if (TextOutW(ti->dc, 0, 0, wstr, wcslen(wstr)) == 0)
 		xpanic("error drawing text path", GetLastError());
 	fontUnselect(font, ti->dc, prevFont);
 	free(wstr);
+	if (GdiFlush() == 0)
+		xpanic("error committing GDI operations to memory", GetLastError());
 	return ti;
 }
 
