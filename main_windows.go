@@ -84,6 +84,7 @@ func toImage(i *C.struct_image, r uint8, g uint8, b uint8) (img *image.RGBA) {
 			// (all three color components sould be equal by definition)
 			// we then manually alpha-premultiply the color
 			// full credit for this goes to arx at http://stackoverflow.com/a/26025936/3408572
+			// TODO http://stackoverflow.com/questions/26023798/is-it-possible-to-render-antialiased-text-onto-a-transparent-background-with-pur#comment40943112_26025936
 			alpha := uint8((data[q] >> 16) & 0xFF)			// use red component
 			// white is 0xFF and black is 0x00; we need the opposite
 			alpha = 255 - alpha
