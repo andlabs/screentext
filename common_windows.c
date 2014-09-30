@@ -9,6 +9,8 @@ void init(void)
 	screenDC = GetDC(NULL);
 	if (screenDC == NULL)
 		xpanic("error getting screen DC", GetLastError());
+	if (SetMapMode(screenDC, MM_TEXT) == 0)
+		xpanic("error setting text mapping mode for screen DC (important for size calculations)", GetLastError());
 }
 
 char *tostr(WCHAR *wstr)

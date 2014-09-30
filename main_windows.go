@@ -52,10 +52,10 @@ func lineSize(str string, f Font) (int, int) {
 	return int(size.cx), int(size.cy)
 }
 
-// same premultiplication that GDI AlphaBlend() says to do; see xxx
+// same premultiplication that GDI AlphaBlend() says to do; see http://msdn.microsoft.com/en-us/library/dd183393%28v=vs.85%29.aspx
 func premultiply(c uint8, alpha uint8) uint8 {
 	part := int(c) * int(alpha)
-	return uint8(part / 255)
+	return uint8(part / 0xFF)
 }
 
 // assumes lock is held
@@ -83,7 +83,7 @@ func toImage(i *C.struct_image, r uint8, g uint8, b uint8) (img *image.RGBA) {
 			// this means the pixel color can be used as an alpha, with white being fully transparent and black being fully opaque
 			// (all three color components sould be equal by definition)
 			// we then manually alpha-premultiply the color
-			// full credit for this goes to xxx at xxx
+			// full credit for this goes to arx at http://stackoverflow.com/a/26025936/3408572
 			alpha := uint8((data[q] >> 16) & 0xFF)			// use red component
 			// white is 0xFF and black is 0x00; we need the opposite
 			alpha = 255 - alpha

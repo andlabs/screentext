@@ -50,23 +50,17 @@ void listFonts(void *golist)
 
 HFONT newFont(LOGFONTW *lf, char *family, LONG size)
 {
-	HDC dc;
 	HFONT f;
 
-	dc = GetDC(NULL);
-	if (dc == NULL)
-		xpanic("error getting screen DC for NewFont() (needed for size calculation)", GetLastError());
 	if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
 		family, -1,
 		lf->lfFaceName, LF_FACESIZE) == 0)
 		xpanic("error loading FontSpec.Family into LOGFONTW for NewFont()", GetLastError());
 	// see http://msdn.microsoft.com/en-us/library/windows/desktop/dd145037%28v=vs.85%29.aspx
-	lf->lfHeight = -MulDiv(size, GetDeviceCaps(dc, LOGPIXELSY), 72);
+	lf->lfHeight = -MulDiv(size, GetDeviceCaps(screenDC, LOGPIXELSY), 72);
 	f = CreateFontIndirectW(lf);
 	if (f == NULL)
 		xpanic("error creating font in NewFont()", GetLastError());
-	if (ReleaseDC(NULL, dc) == 0)
-		xpanic("error releasing screen DC for NewFont() (needed for size calculation)", GetLastError());
 	return f;
 }
 
