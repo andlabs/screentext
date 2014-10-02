@@ -24,7 +24,19 @@ var (
 	sizespace		C.CGColorSpaceRef
 )
 
-func newImage(width int, height int) (C.CGColorSpaceRef, C.CGContextRef)) {
+// screw init() not being run in tests >:(
+func testInit() {
+	lock.Lock()
+	defer lock.Unlock()
+
+	sizespace, sizecontext = newImage(1, 1)
+}
+
+func init() {
+	testInit()
+}
+
+func newImage(width int, height int) (C.CGColorSpaceRef, C.CGContextRef) {
 	colorspace := C.CGColorSpaceCreateWithName(C.kCGColorSpaceGenericRGB)
 	if colorspace == nil {
 		// TODO get error reason
