@@ -1,8 +1,8 @@
-This library is in its infancy. So far, this is all it can do:
+This is a library for Go that draws text onto an image.Image. The text uses the underlying OS's text rendering system, so system fonts can be used. It is designed for rendering to the screen, so text is antialiased, etc.
 
-![solid lines of arbitrary width and color and text of arbitrary color](http://i.imgur.com/iwCVT7f.png)
+It started as a more general-purpose vector graphics library, but technical restirctions and a general misunderstanding of the problem of vector graphics and device specificity made this unreasonable, so the scope was limited to just text strings. I plan on making a better vector graphics subsystem later.
 
-except that presently text is hollow pending the addition of Brushes.
+It's sloppy :/
 
 REQUIREMENTS
 * Windows: Windows XP or newer (same as Go); uses GDI
