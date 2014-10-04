@@ -1,6 +1,6 @@
 // 18 september 2014
 
-package ndraw
+package screentext
 
 import (
 	"sync"

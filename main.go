@@ -1,6 +1,6 @@
 // 10 june 2014
 
-package ndraw
+package screentext
 
 import (
 	"image"

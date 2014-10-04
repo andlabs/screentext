@@ -1,6 +1,6 @@
 // 13 june 2014
 
-package ndraw
+package screentext
 
 // Font represents a font.
 // A Font is created by passing a FontSpec to NewFont().
